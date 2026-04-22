@@ -178,32 +178,6 @@ npm run dev
 npm start
 ```
 
-## 📝 Archivo package.json
-
-```json
-{
-  "name": "plataforma-iush",
-  "version": "1.0.0",
-  "description": "Backend para PlataformaIUSH",
-  "type": "module",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
-}
-```
-
 ## 🏗️ Arquitectura MVC
 
 Este proyecto implementa el patrón **Modelo-Vista-Controlador** (MVC):
