@@ -5,7 +5,10 @@ import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/authRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+<<<<<<< HEAD
 import institucionRoutes from './routes/institucionRoutes.js';
+=======
+>>>>>>> feature/Equipo8-Login
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -21,6 +24,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
+<<<<<<< HEAD
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
@@ -28,6 +32,13 @@ app.use('/api/users', userRoutes);
 app.use('/api/institucion', institucionRoutes);
 
 // controlamos error
+=======
+app.use('/api/auth', authRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/users', userRoutes);
+
+//controlamos error
+>>>>>>> feature/Equipo8-Login
 app.use(errorHandler);
 
 export default app;
