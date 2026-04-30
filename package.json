@@ -8,12 +8,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:init": "node scripts/init-db.js",
-<<<<<<< HEAD
     "db:seed": "node scripts/seed.js",
     "db:init-institucion": "node scripts/init-institucion.js"
-=======
-    "db:seed": "node scripts/seed.js"
->>>>>>> feature/Equipo8-Login
   },
   "repository": {
     "type": "git",
