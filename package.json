@@ -6,7 +6,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "db:init": "node scripts/init-db.js",
+    "db:seed": "node scripts/seed.js",
+    "db:init-institucion": "node scripts/init-institucion.js"
   },
   "repository": {
     "type": "git",
