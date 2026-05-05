@@ -22,7 +22,7 @@ export const getConfig = async (_req, res, next) => {
  */
 export const updateConfig = async (req, res, next) => {
   try {
-    // Sanitizar los datos del body
+    // Sanitizar los datos del body (recibe nombres antiguos del frontend)
     const configData = {};
 
     if (req.body.logo_url !== undefined) {
@@ -37,8 +37,8 @@ export const updateConfig = async (req, res, next) => {
       configData.secondary_color = typeof req.body.secondary_color === 'string' ? req.body.secondary_color.trim() : req.body.secondary_color;
     }
 
-    if (req.body.tertiary_color !== undefined) {
-      configData.tertiary_color = typeof req.body.tertiary_color === 'string' ? req.body.tertiary_color.trim() : req.body.tertiary_color;
+    if (req.body.muted_color !== undefined) {
+      configData.muted_color = typeof req.body.muted_color === 'string' ? req.body.muted_color.trim() : req.body.muted_color;
     }
 
     if (req.body.background_color !== undefined) {
@@ -53,8 +53,8 @@ export const updateConfig = async (req, res, next) => {
       configData.text_secondary = typeof req.body.text_secondary === 'string' ? req.body.text_secondary.trim() : req.body.text_secondary;
     }
 
-    if (req.body.text_tertiary !== undefined) {
-      configData.text_tertiary = typeof req.body.text_tertiary === 'string' ? req.body.text_tertiary.trim() : req.body.text_tertiary;
+    if (req.body.text_muted !== undefined) {
+      configData.text_muted = typeof req.body.text_muted === 'string' ? req.body.text_muted.trim() : req.body.text_muted;
     }
 
     if (req.body.border_color !== undefined) {

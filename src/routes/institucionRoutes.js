@@ -19,40 +19,40 @@ const router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 name:
+ *                 nombre:
  *                   type: string
  *                   example: "IUSH Principal"
- *                 logo_url:
+ *                 url_logo:
  *                   type: string
  *                   nullable: true
  *                   example: "https://example.com/logo.png"
- *                 primary_color:
+ *                 color_primario:
  *                   type: string
  *                   example: "#1F2937"
- *                 secondary_color:
+ *                 color_secundario:
  *                   type: string
  *                   example: "#3B82F6"
- *                 background_color:
+ *                 color_fondo:
  *                   type: string
  *                   example: "#F9FAFB"
- *                 text_primary:
+ *                 texto_primario:
  *                   type: string
  *                   example: "#111827"
- *                 text_secondary:
+ *                 texto_secundario:
  *                   type: string
  *                   example: "#6B7280"
- *                 text_tertiary:
+ *                 texto_terciario:
  *                   type: string
  *                   example: "#9CA3AF"
  *             example:
- *               name: "IUSH Principal"
- *               logo_url: "https://example.com/logo.png"
- *               primary_color: "#1F2937"
- *               secondary_color: "#3B82F6"
- *               background_color: "#F9FAFB"
- *               text_primary: "#111827"
- *               text_secondary: "#6B7280"
- *               text_tertiary: "#9CA3AF"
+ *               nombre: "IUSH Principal"
+ *               url_logo: "https://example.com/logo.png"
+ *               color_primario: "#1F2937"
+ *               color_secundario: "#3B82F6"
+ *               color_fondo: "#F9FAFB"
+ *               texto_primario: "#111827"
+ *               texto_secundario: "#6B7280"
+ *               texto_terciario: "#9CA3AF"
  */
 router.get('/config', getConfig);
 
@@ -72,31 +72,31 @@ router.get('/config', getConfig);
  *           schema:
  *             type: object
  *             properties:
- *               logo_url:
+ *               url_logo:
  *                 type: string
  *                 description: URL del logo de la institución
  *                 example: "https://example.com/nuevo-logo.png"
- *               primary_color:
+ *               color_primario:
  *                 type: string
  *                 description: Color primario en formato HEX (#RRGGBB)
  *                 example: "#FF5733"
- *               secondary_color:
+ *               color_secundario:
  *                 type: string
  *                 description: Color secundario en formato HEX (#RRGGBB)
  *                 example: "#33FF57"
- *               background_color:
+ *               color_fondo:
  *                 type: string
  *                 description: Color de fondo en formato HEX (#RRGGBB)
  *                 example: "#FFFFFF"
- *               text_primary:
+ *               texto_primario:
  *                 type: string
  *                 description: Color de texto primario en formato HEX (#RRGGBB)
  *                 example: "#000000"
- *               text_secondary:
+ *               texto_secundario:
  *                 type: string
  *                 description: Color de texto secundario en formato HEX (#RRGGBB)
  *                 example: "#4B5563"
- *               text_tertiary:
+ *               texto_terciario:
  *                 type: string
  *                 description: Color de texto terciario en formato HEX (#RRGGBB)
  *                 example: "#8B92A3"
@@ -104,29 +104,29 @@ router.get('/config', getConfig);
  *             actualizar_colores:
  *               summary: "Actualizar solo colores"
  *               value:
- *                 primary_color: "#FF5733"
- *                 secondary_color: "#33FF57"
- *                 background_color: "#FFFFFF"
+ *                 color_primario: "#FF5733"
+ *                 color_secundario: "#33FF57"
+ *                 color_fondo: "#FFFFFF"
  *             actualizar_logo:
  *               summary: "Actualizar solo el logo"
  *               value:
- *                 logo_url: "https://cdn.example.com/logo-institucional.png"
+ *                 url_logo: "https://cdn.example.com/logo-institucional.png"
  *             actualizar_colores_texto:
  *               summary: "Actualizar colores de texto"
  *               value:
- *                 text_primary: "#000000"
- *                 text_secondary: "#4B5563"
- *                 text_tertiary: "#8B92A3"
+ *                 texto_primario: "#000000"
+ *                 texto_secundario: "#4B5563"
+ *                 texto_terciario: "#8B92A3"
  *             actualizar_todo:
  *               summary: "Actualizar todo (completo)"
  *               value:
- *                 logo_url: "https://cdn.example.com/logo.png"
- *                 primary_color: "#1E40AF"
- *                 secondary_color: "#0891B2"
- *                 background_color: "#F8FAFC"
- *                 text_primary: "#0F172A"
- *                 text_secondary: "#475569"
- *                 text_tertiary: "#94A3B8"
+ *                 url_logo: "https://cdn.example.com/logo.png"
+ *                 color_primario: "#1E40AF"
+ *                 color_secundario: "#0891B2"
+ *                 color_fondo: "#F8FAFC"
+ *                 texto_primario: "#0F172A"
+ *                 texto_secundario: "#475569"
+ *                 texto_terciario: "#94A3B8"
  *     responses:
  *       200:
  *         description: Configuración actualizada correctamente
@@ -138,25 +138,25 @@ router.get('/config', getConfig);
  *                 nombre:
  *                   type: string
  *                   example: "IUSH Principal"
- *                 logo_url:
+ *                 url_logo:
  *                   type: string
  *                   example: "https://cdn.example.com/logo.png"
- *                 primary_color:
+ *                 color_primario:
  *                   type: string
  *                   example: "#1E40AF"
- *                 secondary_color:
+ *                 color_secundario:
  *                   type: string
  *                   example: "#0891B2"
- *                 background_color:
+ *                 color_fondo:
  *                   type: string
  *                   example: "#F8FAFC"
- *                 text_primary:
+ *                 texto_primario:
  *                   type: string
  *                   example: "#0F172A"
- *                 text_secondary:
+ *                 texto_secundario:
  *                   type: string
  *                   example: "#475569"
- *                 text_tertiary:
+ *                 texto_terciario:
  *                   type: string
  *                   example: "#94A3B8"
  *       400:
@@ -169,11 +169,11 @@ router.get('/config', getConfig);
  *               color_invalido:
  *                 summary: "Color HEX inválido"
  *                 value:
- *                   error: "El campo \"primary_color\" debe ser un color HEX válido en formato #RRGGBB."
+ *                   error: "El campo \"color_primario\" debe ser un color HEX válido en formato #RRGGBB."
  *               url_invalida:
  *                 summary: "URL inválida"
  *                 value:
- *                   error: "El campo \"logo_url\" debe ser una URL válida."
+ *                   error: "El campo \"url_logo\" debe ser una URL válida."
  *       401:
  *         description: Token no proporcionado o inválido
  *       403:

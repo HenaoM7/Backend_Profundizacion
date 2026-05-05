@@ -9,6 +9,41 @@ import {
 const HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{6})$/;
 
 /**
+ * Mapea nombres nuevos (BD) → nombres antiguos (API/Frontend)
+ */
+const mapNewToOldNames = (config) => ({
+  name: config.nombre,
+  logo_url: config.url_logo,
+  primary_color: config.color_primario,
+  secondary_color: config.color_secundario,
+  muted_color: config.color_muted,
+  background_color: config.color_fondo,
+  text_primary: config.texto_primario,
+  text_secondary: config.texto_secundario,
+  text_muted: config.texto_muted,
+  border_color: config.color_borde,
+  input_color: config.color_input,
+});
+
+/**
+ * Mapea nombres antiguos (API/Frontend) → nombres nuevos (BD)
+ */
+const mapOldToNewNames = (config) => {
+  const mapped = {};
+  if (config.logo_url !== undefined) mapped.url_logo = config.logo_url;
+  if (config.primary_color !== undefined) mapped.color_primario = config.primary_color;
+  if (config.secondary_color !== undefined) mapped.color_secundario = config.secondary_color;
+  if (config.muted_color !== undefined) mapped.color_muted = config.muted_color;
+  if (config.background_color !== undefined) mapped.color_fondo = config.background_color;
+  if (config.text_primary !== undefined) mapped.texto_primario = config.text_primary;
+  if (config.text_secondary !== undefined) mapped.texto_secundario = config.text_secondary;
+  if (config.text_muted !== undefined) mapped.texto_muted = config.text_muted;
+  if (config.border_color !== undefined) mapped.color_borde = config.border_color;
+  if (config.input_color !== undefined) mapped.color_input = config.input_color;
+  return mapped;
+};
+
+/**
  * Valida que un color sea un HEX válido
  */
 const isValidHexColor = (color) => {
@@ -41,20 +76,8 @@ export const getInstitucionConfigService = async () => {
     throw error;
   }
 
-  // Retornar solo los campos de configuración (sin id, creacion, actualizacion)
-  return {
-    name: config.name,
-    logo_url: config.logo_url,
-    primary_color: config.primary_color,
-    secondary_color: config.secondary_color,
-    tertiary_color: config.tertiary_color,
-    background_color: config.background_color,
-    text_primary: config.text_primary,
-    text_secondary: config.text_secondary,
-    text_tertiary: config.text_tertiary,
-    border_color: config.border_color,
-    input_color: config.input_color,
-  };
+  // Retornar con nombres antiguos (compatibilidad con frontend)
+  return mapNewToOldNames(config);
 };
 
 /**
@@ -68,15 +91,15 @@ export const updateInstitucionConfigService = async (configData) => {
     throw error;
   }
 
-  // Validar colores HEX
+  // Validar colores HEX (usando nombres antiguos)
   const colorFields = [
     'primary_color',
     'secondary_color',
-    'tertiary_color',
+    'muted_color',
     'background_color',
     'text_primary',
     'text_secondary',
-    'text_tertiary',
+    'text_muted',
     'border_color',
     'input_color',
   ];
@@ -98,8 +121,11 @@ export const updateInstitucionConfigService = async (configData) => {
     throw error;
   }
 
+  // Mapear nombres antiguos → nuevos
+  const mappedData = mapOldToNewNames(configData);
+
   // Actualizar configuración
-  const updatedConfig = await updateInstitucionConfig(configData);
+  const updatedConfig = await updateInstitucionConfig(mappedData);
 
   if (!updatedConfig) {
     const error = new Error('Error al actualizar la configuración.');
@@ -107,18 +133,6 @@ export const updateInstitucionConfigService = async (configData) => {
     throw error;
   }
 
-  // Retornar solo los campos de configuración
-  return {
-    name: updatedConfig.name,
-    logo_url: updatedConfig.logo_url,
-    primary_color: updatedConfig.primary_color,
-    secondary_color: updatedConfig.secondary_color,
-    tertiary_color: updatedConfig.tertiary_color,
-    background_color: updatedConfig.background_color,
-    text_primary: updatedConfig.text_primary,
-    text_secondary: updatedConfig.text_secondary,
-    text_tertiary: updatedConfig.text_tertiary,
-    border_color: updatedConfig.border_color,
-    input_color: updatedConfig.input_color,
-  };
+  // Retornar con nombres antiguos (compatibilidad con frontend)
+  return mapNewToOldNames(updatedConfig);
 };

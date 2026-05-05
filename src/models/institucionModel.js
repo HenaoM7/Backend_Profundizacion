@@ -9,22 +9,22 @@ const INSTITUCION_ID = '550e8400-e29b-41d4-a716-446655440000';
 export const getInstitucionConfig = async () => {
   const result = await query(
     `SELECT 
-      id,
-      name,
-      logo_url,
-      primary_color,
-      secondary_color,
-      tertiary_color,
-      background_color,
-      text_primary,
-      text_secondary,
-      text_tertiary,
-      border_color,
-      input_color,
-      created_at,
-      updated_at
-    FROM institucion
-    WHERE id = $1`,
+      id_configuracion_tema,
+      nombre,
+      url_logo,
+      color_primario,
+      color_secundario,
+      color_terciario,
+      color_fondo,
+      texto_primario,
+      texto_secundario,
+      color_muted,
+      color_borde,
+      color_input,
+      creado_en,
+      actualizado_en
+    FROM configuracion_tema
+    WHERE id_configuracion_tema = $1`,
     [INSTITUCION_ID]
   );
 
@@ -36,58 +36,58 @@ export const getInstitucionConfig = async () => {
  */
 export const updateInstitucionConfig = async (configData) => {
   const {
-    logo_url,
-    primary_color,
-    secondary_color,
-    tertiary_color,
-    background_color,
-    text_primary,
-    text_secondary,
-    text_tertiary,
-    border_color,
-    input_color,
+    url_logo,
+    color_primario,
+    color_secundario,
+    color_terciario,
+    color_fondo,
+    texto_primario,
+    texto_secundario,
+    texto_terciario,
+    color_borde,
+    color_input,
   } = configData;
 
   const result = await query(
-    `UPDATE institucion
+    `UPDATE configuracion_tema
     SET 
-      logo_url = COALESCE($1, logo_url),
-      primary_color = COALESCE($2, primary_color),
-      secondary_color = COALESCE($3, secondary_color),
-      tertiary_color = COALESCE($4, tertiary_color),
-      background_color = COALESCE($5, background_color),
-      text_primary = COALESCE($6, text_primary),
-      text_secondary = COALESCE($7, text_secondary),
-      text_tertiary = COALESCE($8, text_tertiary),
-      border_color = COALESCE($9, border_color),
-      input_color = COALESCE($10, input_color)
-    WHERE id = $11
+      url_logo = COALESCE($1, url_logo),
+      color_primario = COALESCE($2, color_primario),
+      color_secundario = COALESCE($3, color_secundario),
+      color_muted = COALESCE($4, color_muted),
+      color_fondo = COALESCE($5, color_fondo),
+      texto_primario = COALESCE($6, texto_primario),
+      texto_secundario = COALESCE($7, texto_secundario),
+      texto_muted = COALESCE($8, texto_muted),
+      color_borde = COALESCE($9, color_borde),
+      color_input = COALESCE($10, color_input)
+    WHERE id_configuracion_tema = $11
     RETURNING 
-      id,
-      name,
-      logo_url,
-      primary_color,
-      secondary_color,
-      tertiary_color,
-      background_color,
-      text_primary,
-      text_secondary,
-      text_tertiary,
-      border_color,
-      input_color,
-      created_at,
-      updated_at`,
+      id_configuracion_tema,
+      nombre,
+      url_logo,
+      color_primario,
+      color_secundario,
+      color_terciario,
+      color_fondo,
+      texto_primario,
+      texto_secundario,
+      texto_terciario,
+      color_borde,
+      color_input,
+      creado_en,
+      actualizado_en`,
     [
-      logo_url,
-      primary_color,
-      secondary_color,
-      tertiary_color,
-      background_color,
-      text_primary,
-      text_secondary,
-      text_tertiary,
-      border_color,
-      input_color,
+      url_logo,
+      color_primario,
+      color_secundario,
+      color_terciario,
+      color_fondo,
+      texto_primario,
+      texto_secundario,
+      texto_terciario,
+      color_borde,
+      color_input,
       INSTITUCION_ID,
     ]
   );
