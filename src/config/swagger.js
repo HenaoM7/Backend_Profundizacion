@@ -42,6 +42,7 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
     { name: 'Sistema',        description: 'Estado y salud de la API' },
     { name: 'Notas',          description: '[Equipo 5] Gestión de notas por módulos y cursos' },
     { name: 'Certificados',   description: '[Equipo 5] Generación y consulta de certificados' },
+    { name: 'Evaluaciones',   description: '[Equipo 5] Respuesta de evaluaciones y cálculo automático de nota' },
   ],
   components: {
     securitySchemes: {
@@ -373,6 +374,148 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
                 schema: {
                   type: 'object',
                   properties: { success: { type: 'boolean', example: true }, data: { $ref: '#/components/schemas/DownloadResponse' } },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    '/grades/course/{courseId}/estadisticas': {
+      get: {
+        tags: ['Notas'],
+        summary: 'Estadísticas de un curso',
+        description: `Retorna estadísticas completas de todas las notas registradas en un curso.\n\n**Roles:** ADMIN, SuperAdmin`,
+        parameters: [
+          { name: 'courseId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'ID del curso.' },
+        ],
+        responses: {
+          200: {
+            description: 'Estadísticas del curso.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    courseId:           'uuid-curso',
+                    total_estudiantes:  12,
+                    promedio_general:   72.5,
+                    total_aprobados:    9,
+                    total_reprobados:   3,
+                    nota_maxima:        98,
+                    nota_minima:        42,
+                    por_modulo: [
+                      { id_modulo: 'uuid-mod-1', total_estudiantes: 12, promedio: 75.3, nota_maxima: 98, nota_minima: 50 },
+                      { id_modulo: 'uuid-mod-2', total_estudiantes: 10, promedio: 69.8, nota_maxima: 92, nota_minima: 42 },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    // ── Evaluaciones ──────────────────────────────────────────────────────────
+    '/evaluaciones/contenido/{id_contenido}/responder': {
+      post: {
+        tags: ['Evaluaciones'],
+        summary: 'Responder evaluación de un contenido',
+        description: `El estudiante envía sus respuestas para todas las preguntas de un contenido.\n\nEl sistema:\n1. Valida que no haya respondido antes\n2. Verifica que cada opción pertenece a su pregunta\n3. Calcula el puntaje: *(correctas / total) × 100*\n4. **Crea automáticamente una nota** con la calificación obtenida\n\n**Roles:** ESTUDIANTE, ADMIN`,
+        parameters: [
+          { name: 'id_contenido', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del contenido.' },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['respuestas'],
+                properties: {
+                  respuestas: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      required: ['idEvaluacion', 'idOpcion'],
+                      properties: {
+                        idEvaluacion: { type: 'integer', example: 1 },
+                        idOpcion:     { type: 'integer', example: 3 },
+                      },
+                    },
+                  },
+                },
+              },
+              example: {
+                respuestas: [
+                  { idEvaluacion: 1, idOpcion: 2 },
+                  { idEvaluacion: 2, idOpcion: 5 },
+                ],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Evaluación respondida y nota creada automáticamente.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    nota:            { id: 'uuid', score: 75, courseId: 'uuid', moduleId: 'uuid' },
+                    calificacion:    75,
+                    puntajeObtenido: 15,
+                    puntajeTotal:    20,
+                    detalle: [
+                      { idEvaluacion: 1, enunciado: '¿Qué es React?', esCorrecta: true,  puntaje: 10 },
+                      { idEvaluacion: 2, enunciado: '¿Qué es un hook?', esCorrecta: false, puntaje: 10 },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+          409: { $ref: '#/components/responses/Conflict' },
+        },
+      },
+    },
+
+    '/evaluaciones/contenido/{id_contenido}/resultado/{userId}': {
+      get: {
+        tags: ['Evaluaciones'],
+        summary: 'Consultar resultado de evaluación',
+        description: `Retorna el detalle del resultado de un estudiante en la evaluación de un contenido.\n\n**Roles:** ADMIN, DOCENTE (cualquier estudiante) · ESTUDIANTE (solo el propio)`,
+        parameters: [
+          { name: 'id_contenido', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del contenido.' },
+          { name: 'userId',       in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del estudiante.' },
+        ],
+        responses: {
+          200: {
+            description: 'Resultado de la evaluación.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    userId:          'uuid-estudiante',
+                    idContenido:     'uuid-contenido',
+                    calificacion:    75,
+                    puntajeObtenido: 15,
+                    puntajeTotal:    20,
+                  },
                 },
               },
             },
