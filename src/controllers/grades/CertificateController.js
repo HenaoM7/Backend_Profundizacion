@@ -1,4 +1,5 @@
 import * as certificateService from '../../services/CertificateService.js';
+import { ROLES } from '../../config/constants.js';
 
 export const generateCertificate = async (req, res, next) => {
   try {
@@ -10,7 +11,7 @@ export const generateCertificate = async (req, res, next) => {
 export const getCertificatesByUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    if (req.user.role === 'ESTUDIANTE' && req.user.userId !== userId) {
+    if (req.user.role === ROLES.ESTUDIANTE && req.user.userId !== userId) {
       return res.status(403).json({ success: false, message: 'Solo puedes consultar tus propios certificados.' });
     }
     const certs = await certificateService.getCertificatesByUser(userId);
@@ -21,7 +22,7 @@ export const getCertificatesByUser = async (req, res, next) => {
 export const downloadCertificate = async (req, res, next) => {
   try {
     const { userId, courseId } = req.params;
-    if (req.user.role === 'ESTUDIANTE' && req.user.userId !== userId) {
+    if (req.user.role === ROLES.ESTUDIANTE && req.user.userId !== userId) {
       return res.status(403).json({ success: false, message: 'Solo puedes consultar tus propios certificados.' });
     }
     const result = await certificateService.downloadCertificate(userId, courseId);

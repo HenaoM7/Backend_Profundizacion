@@ -5,6 +5,8 @@ import swaggerSpec from './config/swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import gradeRoutes from './routes/gradeRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
+import evaluacionRoutes from './routes/evaluacionRoutes.js';
+import progresoRoutes   from './routes/progresoRoutes.js';
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.get('/health', (_req, res) =>
 
 app.use('/grades',       gradeRoutes);
 app.use('/certificates', certificateRoutes);
+app.use('/evaluaciones', evaluacionRoutes);
+app.use('/progreso',     progresoRoutes);
 
 app.use((_req, res) =>
   res.status(404).json({ success: false, message: 'Ruta no encontrada.' })
