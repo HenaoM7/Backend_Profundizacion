@@ -3,7 +3,7 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import cursosRoutes from './routes/cursos.routes.js';
+import teacherRoutes from './routes/teacher.routes.js';
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rutas
-app.use('/', cursosRoutes);
+app.use('/api/teacher', teacherRoutes);
 
 //checkeamos el estado de la api
 app.get('/health', (req, res) => {
