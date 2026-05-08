@@ -37,8 +37,12 @@ export const updateConfig = async (req, res, next) => {
       configData.secondary_color = typeof req.body.secondary_color === 'string' ? req.body.secondary_color.trim() : req.body.secondary_color;
     }
 
-    if (req.body.muted_color !== undefined) {
-      configData.muted_color = typeof req.body.muted_color === 'string' ? req.body.muted_color.trim() : req.body.muted_color;
+    if (req.body.tertiary_color !== undefined) {
+      configData.tertiary_color = typeof req.body.tertiary_color === 'string' ? req.body.tertiary_color.trim() : req.body.tertiary_color;
+    }
+
+    if (req.body.color_muted !== undefined) {
+      configData.color_muted = typeof req.body.color_muted === 'string' ? req.body.color_muted.trim() : req.body.color_muted;
     }
 
     if (req.body.background_color !== undefined) {
@@ -53,8 +57,8 @@ export const updateConfig = async (req, res, next) => {
       configData.text_secondary = typeof req.body.text_secondary === 'string' ? req.body.text_secondary.trim() : req.body.text_secondary;
     }
 
-    if (req.body.text_muted !== undefined) {
-      configData.text_muted = typeof req.body.text_muted === 'string' ? req.body.text_muted.trim() : req.body.text_muted;
+    if (req.body.text_on_dark !== undefined) {
+      configData.text_on_dark = typeof req.body.text_on_dark === 'string' ? req.body.text_on_dark.trim() : req.body.text_on_dark;
     }
 
     if (req.body.border_color !== undefined) {

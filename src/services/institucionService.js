@@ -16,11 +16,12 @@ const mapNewToOldNames = (config) => ({
   logo_url: config.url_logo,
   primary_color: config.color_primario,
   secondary_color: config.color_secundario,
-  muted_color: config.color_muted,
+  tertiary_color: config.color_terciario,
+  color_muted: config.color_muted,
   background_color: config.color_fondo,
   text_primary: config.texto_primario,
   text_secondary: config.texto_secundario,
-  text_muted: config.texto_muted,
+  text_on_dark: config.texto_terciario,
   border_color: config.color_borde,
   input_color: config.color_input,
 });
@@ -33,11 +34,12 @@ const mapOldToNewNames = (config) => {
   if (config.logo_url !== undefined) mapped.url_logo = config.logo_url;
   if (config.primary_color !== undefined) mapped.color_primario = config.primary_color;
   if (config.secondary_color !== undefined) mapped.color_secundario = config.secondary_color;
-  if (config.muted_color !== undefined) mapped.color_muted = config.muted_color;
+  if (config.tertiary_color !== undefined) mapped.color_terciario = config.tertiary_color;
+  if (config.color_muted !== undefined) mapped.color_muted = config.color_muted;
   if (config.background_color !== undefined) mapped.color_fondo = config.background_color;
   if (config.text_primary !== undefined) mapped.texto_primario = config.text_primary;
   if (config.text_secondary !== undefined) mapped.texto_secundario = config.text_secondary;
-  if (config.text_muted !== undefined) mapped.texto_muted = config.text_muted;
+  if (config.text_on_dark !== undefined) mapped.texto_terciario = config.text_on_dark;
   if (config.border_color !== undefined) mapped.color_borde = config.border_color;
   if (config.input_color !== undefined) mapped.color_input = config.input_color;
   return mapped;
@@ -95,11 +97,12 @@ export const updateInstitucionConfigService = async (configData) => {
   const colorFields = [
     'primary_color',
     'secondary_color',
-    'muted_color',
+    'tertiary_color',
+    'color_muted',
     'background_color',
     'text_primary',
     'text_secondary',
-    'text_muted',
+    'text_on_dark',
     'border_color',
     'input_color',
   ];

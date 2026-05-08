@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS configuracion_tema (
   color_fondo VARCHAR(7),
   texto_primario VARCHAR(7),
   texto_secundario VARCHAR(7),
+  texto_terciario VARCHAR(7),
   color_muted VARCHAR(7),
   color_borde VARCHAR(7),
   color_input VARCHAR(7),
@@ -32,7 +33,6 @@ FOR EACH ROW
 EXECUTE FUNCTION update_configuracion_tema_actualizado_en_column();
 
 -- Insertar la institución única si no existe
-INSERT INTO configuracion_tema (id_configuracion_tema, nombre, url_logo, color_primario, color_secundario, color_terciario, color_muted, color_fondo, texto_primario, texto_secundario, texto_terciario, texto_muted, color_borde, color_input)
-VALUES ('550e8400-e29b-41d4-a716-446655440000'::uuid, 'IUSH Principal', NULL, '#1E40AF', '#0891B2', '#7C3AED', '#AEEDF2', '#F8FAFC', '#0F172A', '#475569', '#6B21A8', '#94A3B8', '#E2E8F0', '#FFFFFF')
-ON CONFLICT (id_configuracion_tema) DO NOTHING;fondo, texto_primario, texto_secundario, color_muted, color_borde, color_input)
-VALUES ('550e8400-e29b-41d4-a716-446655440000'::uuid, 'IUSH Principal', NULL, '#1E40AF', '#0891B2', '#7C3AED', '#F8FAFC', '#0F172A', '#475569', '#AEEDF2
+INSERT INTO configuracion_tema (id_configuracion_tema, nombre, url_logo, color_primario, color_secundario, color_terciario, color_muted, color_fondo, texto_primario, texto_secundario, texto_terciario, color_borde, color_input)
+VALUES ('550e8400-e29b-41d4-a716-446655440000'::uuid, 'IUSH Principal', NULL, '#1E40AF', '#0891B2', '#7C3AED', '#AEEDF2', '#F8FAFC', '#0F172A', '#475569', '#64748B', '#E2E8F0', '#FFFFFF')
+ON CONFLICT (id_configuracion_tema) DO NOTHING

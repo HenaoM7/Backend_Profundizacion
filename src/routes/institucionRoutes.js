@@ -41,7 +41,10 @@ const router = Router();
  *                 texto_secundario:
  *                   type: string
  *                   example: "#6B7280"
- *                 texto_terciario:
+ *                 text_on_dark:
+ *                   type: string
+ *                   example: "#64748B"
+ *                 color_muted:
  *                   type: string
  *                   example: "#9CA3AF"
  *             example:
@@ -52,7 +55,8 @@ const router = Router();
  *               color_fondo: "#F9FAFB"
  *               texto_primario: "#111827"
  *               texto_secundario: "#6B7280"
- *               texto_terciario: "#9CA3AF"
+ *               color_text_on_dark: "#64748B"
+ *               color_muted: "#9CA3AF"
  */
 router.get('/config', getConfig);
 
@@ -96,9 +100,13 @@ router.get('/config', getConfig);
  *                 type: string
  *                 description: Color de texto secundario en formato HEX (#RRGGBB)
  *                 example: "#4B5563"
- *               texto_terciario:
+ *               text_on_dark:
  *                 type: string
- *                 description: Color de texto terciario en formato HEX (#RRGGBB)
+ *                 description: Color de texto en fondo oscuro (texto terciario) en formato HEX (#RRGGBB)
+ *                 example: "#64748B"
+ *               color_muted:
+ *                 type: string
+ *                 description: Color atenuado en formato HEX (#RRGGBB)
  *                 example: "#8B92A3"
  *           examples:
  *             actualizar_colores:
@@ -116,7 +124,7 @@ router.get('/config', getConfig);
  *               value:
  *                 texto_primario: "#000000"
  *                 texto_secundario: "#4B5563"
- *                 texto_terciario: "#8B92A3"
+ *                 color_muted: "#8B92A3"
  *             actualizar_todo:
  *               summary: "Actualizar todo (completo)"
  *               value:
@@ -126,7 +134,8 @@ router.get('/config', getConfig);
  *                 color_fondo: "#F8FAFC"
  *                 texto_primario: "#0F172A"
  *                 texto_secundario: "#475569"
- *                 texto_terciario: "#94A3B8"
+ *                 text_on_dark: "#64748B"
+ *                 color_muted: "#94A3B8"
  *     responses:
  *       200:
  *         description: Configuración actualizada correctamente
@@ -156,7 +165,10 @@ router.get('/config', getConfig);
  *                 texto_secundario:
  *                   type: string
  *                   example: "#475569"
- *                 texto_terciario:
+ *                 text_on_dark:
+ *                   type: string
+ *                   example: "#64748B"
+ *                 color_muted:
  *                   type: string
  *                   example: "#94A3B8"
  *       400:

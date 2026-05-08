@@ -2,7 +2,7 @@ import { getClient, query } from '../database/db.js';
 
 const baseUserSelect = `
   SELECT
-    u.id,
+    u.id_usuario as id,
     u.nombre,
     u.correo,
     u.contrasena,
@@ -10,9 +10,9 @@ const baseUserSelect = `
     u.creacion,
     u.actualizacion,
     COALESCE(ARRAY_REMOVE(ARRAY_AGG(r.nombre ORDER BY r.nombre), NULL), '{}') AS roles
-  FROM usuarios u
-  LEFT JOIN usuarios_roles ur ON ur.id_usuario = u.id
-  LEFT JOIN roles r ON r.id = ur.id_rol AND r.activo = TRUE
+  FROM usuario u
+  LEFT JOIN usuario_rol ur ON ur.id_usuario = u.id_usuario
+  LEFT JOIN rol r ON r.id_rol = ur.id_rol AND r.activo = TRUE
 `;
 
 export const findUserByCorreo = async (correo, { onlyActive = true } = {}) => {
@@ -26,7 +26,7 @@ export const findUserByCorreo = async (correo, { onlyActive = true } = {}) => {
     `
       ${baseUserSelect}
       WHERE ${conditions.join(' AND ')}
-      GROUP BY u.id
+      GROUP BY u.id_usuario
       LIMIT 1
     `,
     [correo]
@@ -36,7 +36,7 @@ export const findUserByCorreo = async (correo, { onlyActive = true } = {}) => {
 };
 
 export const findUserById = async (id, { onlyActive = true } = {}) => {
-  const conditions = ['u.id = $1'];
+  const conditions = ['u.id_usuario = $1'];
 
   if (onlyActive) {
     conditions.push('u.activo = TRUE');
@@ -46,7 +46,7 @@ export const findUserById = async (id, { onlyActive = true } = {}) => {
     `
       ${baseUserSelect}
       WHERE ${conditions.join(' AND ')}
-      GROUP BY u.id
+      GROUP BY u.id_usuario
       LIMIT 1
     `,
     [id]
@@ -59,7 +59,7 @@ export const listUsers = async () => {
   const result = await query(
     `
       ${baseUserSelect}
-      GROUP BY u.id
+      GROUP BY u.id_usuario
       ORDER BY u.creacion DESC
     `
   );
@@ -75,7 +75,7 @@ export const createUser = async ({ id, nombre, correo, passwordHash, roleIds }) 
 
     await client.query(
       `
-        INSERT INTO usuarios (id, nombre, correo, contrasena, activo)
+        INSERT INTO usuario (id_usuario, nombre, correo, contrasena, activo)
         VALUES ($1, $2, $3, $4, TRUE)
       `,
       [id, nombre, correo, passwordHash]
@@ -84,7 +84,7 @@ export const createUser = async ({ id, nombre, correo, passwordHash, roleIds }) 
     for (const roleId of roleIds) {
       await client.query(
         `
-          INSERT INTO usuarios_roles (id_usuario, id_rol)
+          INSERT INTO usuario_rol (id_usuario, id_rol)
           VALUES ($1, $2)
         `,
         [id, roleId]

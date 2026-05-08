@@ -54,9 +54,9 @@ const seed = async () => {
         for (const role of roles) {
             await client.query(
                 `
-          INSERT INTO roles (id, nombre, activo)
+          INSERT INTO rol (id_rol, nombre, activo)
           VALUES ($1, $2, TRUE)
-          ON CONFLICT (id) DO UPDATE
+          ON CONFLICT (id_rol) DO UPDATE
           SET nombre = EXCLUDED.nombre,
               activo = TRUE
         `,
@@ -69,9 +69,9 @@ const seed = async () => {
 
             await client.query(
                 `
-        INSERT INTO usuarios (id, nombre, correo, contrasena, activo)
+        INSERT INTO usuario (id_usuario, nombre, correo, contrasena, activo)
         VALUES ($1, $2, $3, $4, TRUE)
-        ON CONFLICT (id) DO UPDATE
+        ON CONFLICT (id_usuario) DO UPDATE
         SET nombre = EXCLUDED.nombre,
             correo = EXCLUDED.correo,
             contrasena = EXCLUDED.contrasena,
@@ -82,7 +82,7 @@ const seed = async () => {
 
             await client.query(
                 `
-        INSERT INTO usuarios_roles (id_usuario, id_rol)
+        INSERT INTO usuario_rol (id_usuario, id_rol)
         VALUES ($1, $2)
         ON CONFLICT (id_usuario, id_rol) DO NOTHING
       `,
