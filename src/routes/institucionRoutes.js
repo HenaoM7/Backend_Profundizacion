@@ -197,6 +197,6 @@ router.get('/config', getConfig);
  *             example:
  *               message: "No tienes permisos para realizar esta accion."
  */
-router.put('/config', authMiddleware, authorizePermissions(['sistema.personalizar']), updateConfig);
+router.put('/config', authMiddleware, authorizePermissions(['configuracion.institucional.editar']), updateConfig);
 
 export default router;
