@@ -1,13 +1,10 @@
 export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack || err);
+  const status  = err.status || err.statusCode || 500;
+  const message = err.message || 'Error interno del servidor';
 
-  const statusCode = err.statusCode || 500;
-  const isServerError = statusCode >= 500;
+  if (status >= 500) {
+    console.error('[ErrorHandler]', err.stack || err);
+  }
 
-  res.status(statusCode).json({
-    error: isServerError ? 'Error interno del servidor' : err.message,
-    ...(isServerError && process.env.NODE_ENV !== 'production' && err.message
-      ? { details: err.message }
-      : {}),
-  });
+  res.status(status).json({ success: false, message });
 };
