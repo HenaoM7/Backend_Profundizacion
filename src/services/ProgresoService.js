@@ -3,11 +3,6 @@ import * as gradeRepository          from '../repositories/GradeRepository.js';
 import { generateCertificateAutomatico } from './CertificateService.js';
 import { getClient }  from '../database/db.js';
 
-/**
- * Marca un contenido como completado por el estudiante,
- * recalcula el progreso del curso y — si llega al 100% —
- * crea nota y certificado automáticamente.
- */
 export const completarContenido = async (userId, idContenido) => {
   const contenido = await progresoRepo.findContenidoConContexto(idContenido);
 
@@ -29,10 +24,8 @@ export const completarContenido = async (userId, idContenido) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Registrar contenido completado
     await progresoRepo.saveProgresoContenido(userId, idCurso, idContenido);
 
-    // 2. Recalcular progreso
     const { total, completados } = await progresoRepo.contarContenidos(userId, idCurso);
 
     if (total === 0) {
@@ -43,7 +36,6 @@ export const completarContenido = async (userId, idContenido) => {
     const porcentaje = parseFloat(((completados / total) * 100).toFixed(2));
     const completado = porcentaje >= 100;
 
-    // 3. Persistir progreso del curso
     const progreso = await progresoRepo.upsertProgresoCurso(client, {
       idUsuario:  userId,
       idCurso,
@@ -59,7 +51,6 @@ export const completarContenido = async (userId, idContenido) => {
     let nota        = null;
     let certificado = null;
 
-    // 4. Al llegar al 100%: crear nota y certificado automáticamente
     if (completado) {
       nota = await gradeRepository.save({
         userId,
@@ -95,9 +86,6 @@ export const completarContenido = async (userId, idContenido) => {
   }
 };
 
-/**
- * Retorna el progreso actual de un estudiante en un curso específico.
- */
 export const getProgresoCurso = async (userId, courseId) => {
   const progreso = await progresoRepo.findProgresoCurso(userId, courseId);
 
@@ -117,17 +105,12 @@ export const getProgresoCurso = async (userId, courseId) => {
   return progreso;
 };
 
-/**
- * Retorna el progreso de TODOS los estudiantes en un curso.
- * Uso: DOCENTE (solo su curso) / ADMIN / SUPER_ADMIN.
- */
+
 export const getProgresoCursoTodos = async (courseId) => {
   return progresoRepo.findProgresoCursoTodos(courseId);
 };
 
-/**
- * Retorna el progreso del estudiante en todos sus cursos.
- */
+
 export const getMisCursos = async (userId) => {
   return progresoRepo.findMisCursos(userId);
 };

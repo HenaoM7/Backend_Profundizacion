@@ -7,7 +7,6 @@ export const responderEvaluacion = async ({ userId, idContenido, respuestas }) =
     throw { status: 400, message: 'userId, idContenido y respuestas son requeridos.' };
   }
 
-  // 1. Obtener todas las preguntas del contenido
   const preguntas = await evaluacionRepo.findByContenido(idContenido);
   if (!preguntas.length) {
     throw { status: 404, message: 'El contenido no tiene evaluaciones configuradas.' };
@@ -15,7 +14,6 @@ export const responderEvaluacion = async ({ userId, idContenido, respuestas }) =
 
   const idsPreguntas = preguntas.map(p => p.id_evaluacion);
 
-  // 2. Validar que el estudiante no haya respondido ya
   for (const idPregunta of idsPreguntas) {
     const yaRespondio = await respuestaRepo.yaRespondio(idPregunta, userId);
     if (yaRespondio) {
@@ -23,7 +21,6 @@ export const responderEvaluacion = async ({ userId, idContenido, respuestas }) =
     }
   }
 
-  // 3. Validar que las respuestas enviadas correspondan a las preguntas del contenido
   const mapaRespuestas = new Map(respuestas.map(r => [r.idEvaluacion, r.idOpcion]));
   for (const pregunta of preguntas) {
     if (!mapaRespuestas.has(pregunta.id_evaluacion)) {
@@ -34,7 +31,6 @@ export const responderEvaluacion = async ({ userId, idContenido, respuestas }) =
     }
   }
 
-  // 4. Validar que cada opción pertenece a su pregunta y calcular puntaje
   let puntajeObtenido = 0;
   let puntajeTotal    = 0;
   const detalleRespuestas = [];
@@ -63,23 +59,20 @@ export const responderEvaluacion = async ({ userId, idContenido, respuestas }) =
     });
   }
 
-  // 5. Calcular calificación (0–100)
   const calificacion = puntajeTotal > 0
     ? parseFloat(((puntajeObtenido / puntajeTotal) * 100).toFixed(2))
     : 0;
 
-  // 6. Obtener contexto modulo/curso desde el contenido
+  
   const contexto = await evaluacionRepo.findContextoByContenido(idContenido);
   if (!contexto) {
     throw { status: 404, message: 'No se encontró el módulo/curso asociado al contenido.' };
   }
 
-  // 7. Guardar respuestas
   await respuestaRepo.saveMany(
     respuestas.map(r => ({ idEvaluacion: r.idEvaluacion, idUsuario: userId, idOpcion: r.idOpcion }))
   );
 
-  // 8. Crear nota
   const nota = await gradeRepository.save({
     userId,
     courseId:    contexto.id_curso,

@@ -62,6 +62,17 @@ export const save = async ({ userId, courseId, imagenUrl = null, nombreEstudiant
   }
 };
 
+export const marcarDescargado = async (userId, courseId) => {
+  const result = await query(
+    `UPDATE certificado
+     SET descargado = true, descargado_en = NOW()
+     WHERE id_usuario = $1 AND id_curso = $2 AND descargado = false
+     RETURNING *`,
+    [userId, courseId]
+  );
+  return result.rows[0] ? Certificate.fromRow(result.rows[0]) : null;
+};
+
 export const findByUserId = async (userId) => {
   const result = await query(
     'SELECT * FROM certificado WHERE id_usuario = $1 ORDER BY emitido_en DESC',

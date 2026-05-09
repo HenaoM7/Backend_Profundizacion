@@ -2,11 +2,7 @@ const DEFAULT_IMAGE = process.env.CERT_IMAGE_DEFAULT ?? null;
 const EXTERNAL_URL  = process.env.CERT_IMAGE_URL      ?? null;
 const TIMEOUT_MS    = 5000;
 
-/**
- * Intenta obtener la URL de imagen personalizada del certificado
- * desde el servicio externo configurado en CERT_IMAGE_URL.
- * Si el servicio falla o no está configurado, devuelve la imagen por defecto.
- */
+
 export const fetchImageUrl = async (courseId) => {
   if (!EXTERNAL_URL) {
     console.warn('[CertImage] CERT_IMAGE_URL no configurada. Usando imagen por defecto.');

@@ -53,7 +53,7 @@ export const getGradesByCourse = async (courseId, requestingUser) => {
 export const getAverageByUserAndCourse = async (userId, courseId, requestingUser) => {
   await verificarCursoDocente(courseId, requestingUser);
 
-  const grades = await gradeRepository.findByUserIdAndCourseId(userId, courseId);
+  const grades = await gradeRepository.findUltimoIntentoPorModulo(userId, courseId);
   if (!grades.length) {
     throw {
       status: 404,
@@ -83,7 +83,7 @@ export const getEstadisticasByCourse = async (courseId) => {
 };
 
 export const isStudentPassing = async (userId, courseId) => {
-  const grades = await gradeRepository.findByUserIdAndCourseId(userId, courseId);
+  const grades = await gradeRepository.findUltimoIntentoPorModulo(userId, courseId);
   if (!grades.length) {
     throw {
       status: 404,

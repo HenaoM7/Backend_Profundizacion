@@ -1,5 +1,9 @@
 export class Certificate {
-  constructor({ id, userId, courseId, issuedAt, url, idMaestroDocumento, imagenUrl, nombreEstudiante, nombreCurso }) {
+  constructor({
+    id, userId, courseId, issuedAt, url,
+    idMaestroDocumento, imagenUrl, nombreEstudiante, nombreCurso,
+    descargado, descargadoEn,
+  }) {
     this.id                 = id;
     this.userId             = userId;
     this.courseId           = courseId;
@@ -9,6 +13,8 @@ export class Certificate {
     this.imagenUrl          = imagenUrl          ?? null;
     this.nombreEstudiante   = nombreEstudiante   ?? null;
     this.nombreCurso        = nombreCurso        ?? null;
+    this.descargado         = descargado         ?? false;
+    this.descargadoEn       = descargadoEn       ?? null;
   }
 
   static fromRow(row) {
@@ -22,6 +28,8 @@ export class Certificate {
       imagenUrl:          row.imagen_url           ?? null,
       nombreEstudiante:   row.nombre_estudiante    ?? null,
       nombreCurso:        row.nombre_curso         ?? null,
+      descargado:         row.descargado           ?? false,
+      descargadoEn:       row.descargado_en        ?? null,
     });
   }
 }

@@ -2,8 +2,6 @@ import { query, getClient } from '../database/db.js';
 import { ProgresoEstudiante } from '../models/ProgresoEstudiante.js';
 import { ProgresoCurso }      from '../models/ProgresoCurso.js';
 
-// ── Contenido ────────────────────────────────────────────────────────────────
-
 export const findContenidoConContexto = async (idContenido) => {
   const result = await query(
     `SELECT c.id_contenido, c.id_modulo, c.activo,
@@ -38,8 +36,6 @@ export const saveProgresoContenido = async (idUsuario, idCurso, idContenido) => 
   return ProgresoEstudiante.fromRow(result.rows[0]);
 };
 
-// ── Cálculo de progreso ───────────────────────────────────────────────────────
-
 export const contarContenidos = async (idUsuario, idCurso) => {
   const total = await query(
     `SELECT COUNT(c.id_contenido)::int AS total
@@ -63,8 +59,6 @@ export const contarContenidos = async (idUsuario, idCurso) => {
     completados: completados.rows[0].completados,
   };
 };
-
-// ── Progreso por curso ────────────────────────────────────────────────────────
 
 export const upsertProgresoCurso = async (client, {
   idUsuario, idCurso, porcentaje, completados, total, completado, aprobado,
@@ -101,8 +95,8 @@ export const findProgresoCursoTodos = async (idCurso) => {
     `SELECT pc.*,
             u.nombre AS nombre_estudiante
      FROM progreso_curso pc
-     JOIN usuario u ON pc.id_usuario = u.id_usuario
-     WHERE pc.id_curso = $1
+     LEFT JOIN usuario u ON pc.id_usuario::text = u.id_usuario::text
+     WHERE pc.id_curso = $1::uuid
      ORDER BY pc.porcentaje DESC`,
     [idCurso]
   );
@@ -122,7 +116,6 @@ export const findMisCursos = async (idUsuario) => {
   return result.rows;
 };
 
-// Datos de estudiante y curso para el certificado
 export const findDatosParaCertificado = async (idUsuario, idCurso) => {
   const result = await query(
     `SELECT u.nombre AS nombre_estudiante, cu.titulo AS nombre_curso

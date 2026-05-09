@@ -32,7 +32,6 @@ export const findOpcionById = async (idOpcion) => {
   return result.rows[0] ?? null;
 };
 
-// Obtiene id_modulo e id_curso desde el contenido de la evaluacion
 export const findContextoByContenido = async (idContenido) => {
   const result = await query(
     `SELECT c.id_modulo, m.id_curso
