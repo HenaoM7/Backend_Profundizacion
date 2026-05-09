@@ -18,10 +18,10 @@ export const obtenerResumenDashboard = async (idDocente) => {
 
 export const obtenerMisEstudiantes = async (idDocente) => {
   const resultado = await query(
-    `SELECT u.id_usuario, u.nombre, u.correo
-     FROM grades g
-     JOIN curso c ON c.id_curso = g.course_id
-     JOIN usuario u ON u.id_usuario = g.user_id
+    `SELECT DISTINCT u.id_usuario, u.nombre, u.correo
+     FROM progreso_curso pc
+     JOIN curso c ON c.id_curso = pc.id_curso
+     JOIN usuario u ON u.id_usuario::text = pc.id_usuario::text
      WHERE c.id_usuario = $1
        AND c.eliminacion IS NULL
      ORDER BY u.nombre ASC`,

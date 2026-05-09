@@ -20,6 +20,7 @@ const router = Router();
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: 0b36846d-c1e9-4d67-a7b6-04363c000000
  *         description: ID del usuario docente
  *     responses:
  *       200:
@@ -42,6 +43,7 @@ router.get('/dashboard/summary', obtenerResumenDashboard);
  *         schema:
  *           type: string
  *           format: uuid
+ *           example: 0b36846d-c1e9-4d67-a7b6-04363c000000
  *         description: ID del usuario docente
  *     responses:
  *       200:
