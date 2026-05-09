@@ -1,6 +1,12 @@
 import { Router } from 'express';
 
-import { listSystemUsers, registerUser } from '../controllers/userController.js';
+import {
+  listSystemUsers,
+  registerUser,
+  getUser,
+  editUser,
+  setUserActiveStatusEndpoint,
+} from '../controllers/userController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { authorizePermissions } from '../middleware/permissionMiddleware.js';
 
@@ -16,6 +22,24 @@ router.use(authMiddleware);
  *     tags: [Usuarios]
  *     security:
  *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: nombre
+ *         schema:
+ *           type: string
+ *         description: Filtra usuarios por nombre parcial.
+ *       - in: query
+ *         name: fechaDesde
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha mínima de creación (inclusive).
+ *       - in: query
+ *         name: fechaHasta
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Fecha máxima de creación (inclusive).
  *     responses:
  *       200:
  *         description: Usuarios cargados correctamente.
@@ -62,5 +86,102 @@ router.get('/', authorizePermissions(['usuarios.ver']), listSystemUsers);
  *         description: Correo duplicado.
  */
 router.post('/', authorizePermissions(['usuarios.crear']), registerUser);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   get:
+ *     summary: Obtiene un usuario específico por ID.
+ *     tags: [Usuarios]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado.
+ *       404:
+ *         description: Usuario no encontrado.
+ */
+router.get('/:id', authorizePermissions(['usuarios.ver']), getUser);
+
+/**
+ * @openapi
+ * /api/users/{id}:
+ *   put:
+ *     summary: Edita un usuario (nombre y/o roles). SuperAdmin no puede ser editado.
+ *     tags: [Usuarios]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               roles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado correctamente.
+ *       400:
+ *         description: Datos invalidos.
+ *       403:
+ *         description: No tienes permisos o usuario es SuperAdmin.
+ *       404:
+ *         description: Usuario no encontrado.
+ */
+router.put('/:id', authorizePermissions(['usuarios.editar']), editUser);
+
+/**
+ * @openapi
+ * /api/users/{id}/activo:
+ *   patch:
+ *     summary: Activa o desactiva un usuario según el valor de "activo".
+ *     tags: [Usuarios]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [activo]
+ *             properties:
+ *               activo:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Estado de Usuario actualizado correctamente.
+ *       400:
+ *         description: Datos invalidos.
+ *       403:
+ *         description: No tienes permisos o usuario es SuperAdmin.
+ *       404:
+ *         description: Usuario no encontrado.
+ */
+router.patch('/:id/activo', authorizePermissions(['usuarios.eliminar']), setUserActiveStatusEndpoint);
 
 export default router;
