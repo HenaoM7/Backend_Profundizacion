@@ -1,48 +1,68 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 
+const STUDENT_ID  = 'fdb51787-747c-4c2c-8ed7-2bc9ebc62145';
+const DOCENTE_ID  = 'c98d3456-0899-4ce7-ad4d-ed3f69095c77';
+const ADMIN_ID    = 'f821425b-0e37-47d4-898e-c47d7ff98658';
+const SA_ID       = '0b36846d-c1e9-4d67-a7b6-043638b3112d';
+const COURSE_ID   = '2346196f-091b-4cb3-beb8-128bca3ad069';
+const MODULE_ID   = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+const CONTENT_ID  = 'c1111111-0000-0000-0000-000000000001';
+const CERT_ID     = '626491ee-21ee-497e-a441-d35794c64ddc';
+
 const definition = {
   openapi: '3.0.3',
   info: {
     title: 'PlataformaIUSH — API REST',
     version: '1.0.0',
     description: `
-## Plataforma Educativa IUSH · Backend
+## Plataforma Educativa IUSH · Backend — Equipo 5
 
-API REST para el sistema educativo PlataformaIUSH.
+API REST para el módulo de **Notas, Progreso y Certificaciones** del sistema educativo PlataformaIUSH.
 
-### Módulos disponibles
-| Módulo | Prefijo | Equipo |
-|--------|---------|--------|
-| Notas y Certificaciones | \`/grades\` \`/certificates\` | Equipo 5 |
+### Módulos de este equipo
+| Prefijo | Descripción |
+|---------|-------------|
+| \`/grades\` | Gestión de calificaciones por módulo |
+| \`/progreso\` | Seguimiento de progreso por contenido y curso |
+| \`/certificates\` | Generación y descarga de certificados |
+| \`/evaluaciones\` | Respuesta de evaluaciones con calificación automática |
 
 ### Autenticación
 Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`.
 
-#### Tokens de prueba:
+\`\`\`
+Authorization: Bearer token-estudiante-001
+\`\`\`
+
+#### Tokens de prueba disponibles
 | Token | Rol | userId |
 |-------|-----|--------|
-| \`token-admin-001\` | ADMIN | usr-001 |
-| \`token-docente-001\` | DOCENTE | usr-002 |
-| \`token-estudiante-001\` | ESTUDIANTE | usr-003 |
-| \`token-estudiante-002\` | ESTUDIANTE | usr-004 |
+| \`token-superadmin-001\` | SuperAdmin | \`${SA_ID}\` |
+| \`token-admin-001\` | Admin | \`${ADMIN_ID}\` |
+| \`token-docente-001\` | Docente | \`${DOCENTE_ID}\` |
+| \`token-estudiante-001\` | Estudiante | \`${STUDENT_ID}\` |
 
 ### Reglas de negocio — Equipo 5
-- Nota mínima aprobatoria: **60 / 100**
-- Certificado solo se emite si el promedio ≥ 60
+- La nota de cada módulo se registra con **número de intento** automático (múltiples intentos permitidos)
+- El promedio se calcula usando el **último intento** de cada módulo
+- El **progreso de un curso** se actualiza automáticamente al completar cada contenido
+- El **certificado** se emite automáticamente al alcanzar el **100 % de progreso** del curso
 - No se duplican certificados por estudiante/curso
-- ESTUDIANTE solo puede consultar su propia información
+- Un **Estudiante** solo puede consultar su propia información
+- Un **Docente** solo puede consultar información de sus propios cursos
     `,
-    contact: { name: 'PlataformaIUSH', email: 'dev@plataformaiush.edu.co' },
+    contact: { name: 'Equipo 5 — PlataformaIUSH', email: 'dev@plataformaiush.edu.co' },
     license: { name: 'ISC' },
   },
   servers: [
     { url: 'http://localhost:3000', description: 'Desarrollo local' },
   ],
   tags: [
-    { name: 'Sistema',        description: 'Estado y salud de la API' },
-    { name: 'Notas',          description: '[Equipo 5] Gestión de notas por módulos y cursos' },
-    { name: 'Certificados',   description: '[Equipo 5] Generación y consulta de certificados' },
-    { name: 'Evaluaciones',   description: '[Equipo 5] Respuesta de evaluaciones y cálculo automático de nota' },
+    { name: 'Sistema',      description: 'Estado y salud de la API' },
+    { name: 'Notas',        description: 'Gestión de calificaciones por módulo y curso' },
+    { name: 'Progreso',     description: 'Seguimiento de avance por contenido; al 100% genera nota y certificado automáticamente' },
+    { name: 'Certificados', description: 'Generación, consulta y descarga de certificados de finalización' },
+    { name: 'Evaluaciones', description: 'Envío de respuestas con corrección automática y creación de nota' },
   ],
   components: {
     securitySchemes: {
@@ -50,68 +70,184 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'Token',
-        description: 'Ingresa uno de los tokens de prueba listados en la descripción.',
+        description: 'Ingresa uno de los tokens de prueba listados en la descripción de la API.',
       },
     },
     schemas: {
+
+      // ── Core entities ──────────────────────────────────────────────────────
       Grade: {
         type: 'object',
+        description: 'Registro de nota de un estudiante en un módulo de un curso.',
         properties: {
-          id:        { type: 'string', format: 'uuid',      example: 'c3f2a1b4-9e8d-4c5f-a2b1-d3e4f5a6b7c8' },
-          userId:    { type: 'string',                      example: 'usr-003' },
-          courseId:  { type: 'string',                      example: 'CS101' },
-          moduleId:  { type: 'string',                      example: 'mod-1' },
-          score:     { type: 'number', minimum: 0, maximum: 100, example: 75 },
-          createdAt: { type: 'string', format: 'date-time', example: '2026-04-25T10:30:00.000Z' },
+          id:            { type: 'string', format: 'uuid',      example: CERT_ID },
+          userId:        { type: 'string', format: 'uuid',      example: STUDENT_ID },
+          courseId:      { type: 'string', format: 'uuid',      example: COURSE_ID },
+          moduleId:      { type: 'string', format: 'uuid',      example: MODULE_ID },
+          score:         { type: 'number', minimum: 0, maximum: 100, example: 88 },
+          evaluacionId:  { type: 'integer', nullable: true,     example: null, description: 'Nulo cuando la nota se genera por progreso; entero cuando proviene de una evaluación.' },
+          numeroIntento: { type: 'integer', minimum: 1,         example: 3, description: 'Se incrementa automáticamente por cada nota registrada en el mismo módulo/curso.' },
+          createdAt:     { type: 'string', format: 'date-time', example: '2026-05-09T13:30:15.330Z' },
         },
       },
+
       Certificate: {
         type: 'object',
+        description: 'Certificado de finalización de un curso.',
         properties: {
-          id:       { type: 'string', format: 'uuid',      example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' },
-          userId:   { type: 'string',                      example: 'usr-003' },
-          courseId: { type: 'string',                      example: 'CS101' },
-          issuedAt: { type: 'string', format: 'date-time', example: '2026-04-25T12:00:00.000Z' },
-          url:      { type: 'string', format: 'uri',       example: 'https://certs.eduplatform.com/verify/f7e8d9...' },
+          id:               { type: 'string', format: 'uuid',      example: CERT_ID },
+          userId:           { type: 'string', format: 'uuid',      example: STUDENT_ID },
+          courseId:         { type: 'string', format: 'uuid',      example: COURSE_ID },
+          issuedAt:         { type: 'string', format: 'date-time', example: '2026-05-08T04:42:32.443Z' },
+          url:              { type: 'string', format: 'uri',       example: 'https://certs.eduplatform.com/verify/4fd91d4a-274b-46d7-85e8-9f7329f657ea' },
+          idMaestroDocumento: { type: 'string', nullable: true,    example: null },
+          imagenUrl:        { type: 'string',  nullable: true,     example: null, description: 'URL de la imagen/plantilla del certificado; null si el servicio externo no está disponible.' },
+          nombreEstudiante: { type: 'string',  nullable: true,     example: 'Estudiante Base' },
+          nombreCurso:      { type: 'string',  nullable: true,     example: 'React 2.0' },
+          descargado:       { type: 'boolean',                     example: true },
+          descargadoEn:     { type: 'string',  format: 'date-time', nullable: true, example: '2026-05-09T12:53:55.988Z' },
         },
       },
+
+      ProgresoCurso: {
+        type: 'object',
+        description: 'Estado de progreso de un estudiante en un curso.',
+        properties: {
+          id:                    { type: 'string', format: 'uuid',      example: 'c7132421-c558-46b1-9edc-871643859181' },
+          idUsuario:             { type: 'string', format: 'uuid',      example: STUDENT_ID },
+          idCurso:               { type: 'string', format: 'uuid',      example: COURSE_ID },
+          porcentaje:            { type: 'number', minimum: 0, maximum: 100, example: 100 },
+          contenidosCompletados: { type: 'integer', example: 2 },
+          totalContenidos:       { type: 'integer', example: 2 },
+          completado:            { type: 'boolean', example: true },
+          aprobado:              { type: 'boolean', example: true },
+          fechaInicio:           { type: 'string', format: 'date-time', example: '2026-05-08T05:56:33.303Z' },
+          fechaCompletado:       { type: 'string', format: 'date-time', nullable: true, example: '2026-05-08T05:56:36.067Z' },
+        },
+      },
+
+      CompletarContenidoResponse: {
+        type: 'object',
+        description: 'Resultado de marcar un contenido como completado.',
+        properties: {
+          progreso:              { $ref: '#/components/schemas/ProgresoCurso' },
+          contenido: {
+            type: 'object',
+            properties: {
+              id:     { type: 'string', format: 'uuid', example: CONTENT_ID },
+              modulo: { type: 'string', example: 'Módulo 1 — Fundamentos de React' },
+              curso:  { type: 'string', example: 'React 2.0' },
+            },
+          },
+          porcentaje:            { type: 'number', example: 100 },
+          contenidosCompletados: { type: 'integer', example: 2 },
+          totalContenidos:       { type: 'integer', example: 2 },
+          completado:            { type: 'boolean', example: true },
+          aprobado:              { type: 'boolean', example: true },
+          nota:                  { $ref: '#/components/schemas/Grade', nullable: true, description: 'Nota automática generada si el curso se completó al 100 %. Null si aún no se completó.' },
+          certificado:           { $ref: '#/components/schemas/Certificate', nullable: true, description: 'Certificado generado automáticamente al completar el 100 %. Null si aún no se completó.' },
+        },
+      },
+
       AverageResponse: {
         type: 'object',
+        description: 'Promedio del estudiante en un curso (último intento por módulo).',
         properties: {
-          userId:       { type: 'string',  example: 'usr-003' },
-          courseId:     { type: 'string',  example: 'CS101' },
-          average:      { type: 'number',  example: 75.67 },
-          totalModules: { type: 'integer', example: 3 },
+          userId:       { type: 'string', format: 'uuid', example: STUDENT_ID },
+          courseId:     { type: 'string', format: 'uuid', example: COURSE_ID },
+          average:      { type: 'number',  example: 81.5 },
+          totalModules: { type: 'integer', example: 2 },
           minPassing:   { type: 'number',  example: 60 },
           isPassing:    { type: 'boolean', example: true },
         },
       },
+
+      EstadisticasCurso: {
+        type: 'object',
+        description: 'Estadísticas globales y por módulo de un curso.',
+        properties: {
+          courseId:          { type: 'string', format: 'uuid', example: COURSE_ID },
+          total_estudiantes: { type: 'integer', example: 1 },
+          promedio_general:  { type: 'number',  example: 77.07 },
+          total_aprobados:   { type: 'integer', example: 12 },
+          total_reprobados:  { type: 'integer', example: 2 },
+          nota_maxima:       { type: 'number',  example: 100 },
+          nota_minima:       { type: 'number',  example: 45 },
+          promedio_intentos: { type: 'number',  example: 3 },
+          por_modulo: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id_modulo:         { type: 'string', format: 'uuid', example: MODULE_ID },
+                total_estudiantes: { type: 'integer', example: 1 },
+                promedio:          { type: 'number',  example: 73.5 },
+                nota_maxima:       { type: 'number',  example: 100 },
+                nota_minima:       { type: 'number',  example: 45 },
+                promedio_intentos: { type: 'number',  example: 4.5 },
+                max_intentos:      { type: 'integer', example: 8 },
+              },
+            },
+          },
+        },
+      },
+
       DownloadResponse: {
         type: 'object',
         properties: {
-          message:     { type: 'string', example: 'Descarga lista. Accede a la URL para obtener el PDF.' },
-          downloadUrl: { type: 'string', format: 'uri' },
-          certificate: { $ref: '#/components/schemas/Certificate' },
+          message:          { type: 'string', example: 'Descarga lista. Accede a la URL para obtener el PDF.' },
+          downloadUrl:      { type: 'string', format: 'uri', example: 'https://certs.eduplatform.com/verify/4fd91d4a-274b-46d7-85e8-9f7329f657ea' },
+          imagenUrl:        { type: 'string', nullable: true, example: null },
+          nombreEstudiante: { type: 'string', nullable: true, example: 'Estudiante Base' },
+          nombreCurso:      { type: 'string', nullable: true, example: 'React 2.0' },
+          descargado:       { type: 'boolean', example: true },
+          descargadoEn:     { type: 'string', format: 'date-time', nullable: true, example: '2026-05-09T12:53:55.988Z' },
+          certificate:      { $ref: '#/components/schemas/Certificate' },
         },
       },
+
+      // ── Request bodies ─────────────────────────────────────────────────────
       GradeRequest: {
         type: 'object',
         required: ['userId', 'courseId', 'moduleId', 'score'],
         properties: {
-          userId:   { type: 'string', example: 'usr-003' },
-          courseId: { type: 'string', example: 'CS101' },
-          moduleId: { type: 'string', example: 'mod-1' },
-          score:    { type: 'number', minimum: 0, maximum: 100, example: 75 },
+          userId:      { type: 'string', format: 'uuid', example: STUDENT_ID },
+          courseId:    { type: 'string', format: 'uuid', example: COURSE_ID },
+          moduleId:    { type: 'string', format: 'uuid', example: MODULE_ID },
+          score:       { type: 'number', minimum: 0, maximum: 100, example: 88 },
+          evaluacionId:{ type: 'integer', nullable: true, example: null, description: 'Opcional. ID de la evaluación asociada.' },
         },
       },
+
       CertificateRequest: {
         type: 'object',
         required: ['userId', 'courseId'],
         properties: {
-          userId:   { type: 'string', example: 'usr-003' },
-          courseId: { type: 'string', example: 'CS101' },
+          userId:   { type: 'string', format: 'uuid', example: STUDENT_ID },
+          courseId: { type: 'string', format: 'uuid', example: COURSE_ID },
         },
       },
+
+      EvaluacionRespuestaRequest: {
+        type: 'object',
+        required: ['respuestas'],
+        properties: {
+          respuestas: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'object',
+              required: ['idEvaluacion', 'idOpcion'],
+              properties: {
+                idEvaluacion: { type: 'integer', example: 1, description: 'ID de la pregunta.' },
+                idOpcion:     { type: 'integer', example: 3, description: 'ID de la opción seleccionada.' },
+              },
+            },
+          },
+        },
+      },
+
+      // ── Envelope responses ─────────────────────────────────────────────────
       SuccessGrade: {
         type: 'object',
         properties: {
@@ -148,6 +284,7 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
         },
       },
     },
+
     responses: {
       Unauthorized: {
         description: 'Token ausente o inválido.',
@@ -163,7 +300,7 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
         content: {
           'application/json': {
             schema: { $ref: '#/components/schemas/ErrorResponse' },
-            example: { success: false, message: 'Acceso denegado. Rol requerido: DOCENTE o ADMIN.' },
+            example: { success: false, message: 'Acceso denegado. Rol insuficiente.' },
           },
         },
       },
@@ -172,12 +309,12 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
         content: {
           'application/json': {
             schema: { $ref: '#/components/schemas/ErrorResponse' },
-            example: { success: false, message: 'No se encontraron notas para el estudiante usr-003.' },
+            example: { success: false, message: 'Recurso no encontrado.' },
           },
         },
       },
       Conflict: {
-        description: 'Recurso duplicado.',
+        description: 'Recurso ya existente (duplicado).',
         content: {
           'application/json': {
             schema: { $ref: '#/components/schemas/ErrorResponse' },
@@ -196,8 +333,12 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
       },
     },
   },
+
   security: [{ BearerAuth: [] }],
+
   paths: {
+
+    // ── Sistema ───────────────────────────────────────────────────────────────
     '/health': {
       get: {
         tags: ['Sistema'],
@@ -217,26 +358,39 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
       },
     },
 
+    // ── Notas ─────────────────────────────────────────────────────────────────
     '/grades': {
       post: {
         tags: ['Notas'],
-        summary: 'Registrar nota',
-        description: 'Registra la nota de un estudiante en un módulo de un curso.\n\n**Roles:** DOCENTE, ADMIN',
+        summary: 'Registrar nota manualmente',
+        description: `Registra la nota de un estudiante en un módulo de un curso.
+
+El campo **numeroIntento** se calcula automáticamente contando los intentos previos del mismo estudiante/módulo/curso.
+
+**Roles permitidos:** Docente, Admin, SuperAdmin`,
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/GradeRequest' },
               examples: {
-                mod1: { summary: 'Módulo 1', value: { userId: 'usr-003', courseId: 'CS101', moduleId: 'mod-1', score: 75 } },
-                mod2: { summary: 'Módulo 2', value: { userId: 'usr-003', courseId: 'CS101', moduleId: 'mod-2', score: 82 } },
-                mod3: { summary: 'Módulo 3', value: { userId: 'usr-003', courseId: 'CS101', moduleId: 'mod-3', score: 70 } },
+                ejemplo1: {
+                  summary: 'Nota 88 en módulo',
+                  value: { userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 88 },
+                },
+                ejemplo2: {
+                  summary: 'Nota 72 con evaluación',
+                  value: { userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 72, evaluacionId: 1 },
+                },
               },
             },
           },
         },
         responses: {
-          201: { description: 'Nota registrada.',  content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGrade' } } } },
+          201: {
+            description: 'Nota registrada correctamente.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGrade' } } },
+          },
           400: { $ref: '#/components/responses/BadRequest' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
@@ -248,12 +402,23 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
       get: {
         tags: ['Notas'],
         summary: 'Notas de un estudiante',
-        description: 'Retorna todas las notas de un estudiante en todos sus cursos.\n\n**Roles:** ADMIN, DOCENTE (cualquier estudiante) · ESTUDIANTE (solo las propias)',
+        description: `Lista todas las notas de un estudiante en todos sus cursos (todos los intentos).
+
+**Roles permitidos:**
+- Admin / SuperAdmin / Docente → cualquier estudiante
+- Estudiante → solo sus propias notas`,
         parameters: [
-          { name: 'userId', in: 'path', required: true, schema: { type: 'string', example: 'usr-003' }, description: 'ID del estudiante.' },
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del estudiante.',
+          },
         ],
         responses: {
-          200: { description: 'Lista de notas.',   content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } } },
+          200: {
+            description: 'Lista de notas.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } },
+          },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
           404: { $ref: '#/components/responses/NotFound' },
@@ -264,13 +429,22 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
     '/grades/course/{courseId}': {
       get: {
         tags: ['Notas'],
-        summary: 'Notas de un curso',
-        description: 'Retorna las notas de todos los estudiantes registrados en un curso.\n\n**Roles:** ADMIN, DOCENTE',
+        summary: 'Todas las notas de un curso',
+        description: `Retorna todas las notas registradas en un curso (todos los estudiantes y todos los intentos).
+
+**Roles permitidos:** Admin, SuperAdmin, Docente (solo sus cursos)`,
         parameters: [
-          { name: 'courseId', in: 'path', required: true, schema: { type: 'string', example: 'CS101' }, description: 'ID del curso.' },
+          {
+            name: 'courseId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
         ],
         responses: {
-          200: { description: 'Lista de notas.',   content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } } },
+          200: {
+            description: 'Lista de notas.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } },
+          },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
           404: { $ref: '#/components/responses/NotFound' },
@@ -282,98 +456,47 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
       get: {
         tags: ['Notas'],
         summary: 'Promedio de un estudiante en un curso',
-        description: 'Calcula el promedio sobre todos los módulos registrados e indica si el estudiante aprueba.\n\n**Roles:** ADMIN, DOCENTE (cualquier estudiante) · ESTUDIANTE (solo el propio)',
+        description: `Calcula el promedio usando el **último intento** de cada módulo.
+
+Indica si el estudiante supera la nota mínima aprobatoria (60).
+
+**Roles permitidos:**
+- Admin / SuperAdmin / Docente → cualquier estudiante
+- Estudiante → solo su propio promedio`,
         parameters: [
-          { name: 'courseId', in: 'path', required: true, schema: { type: 'string', example: 'CS101'  }, description: 'ID del curso.' },
-          { name: 'userId',   in: 'path', required: true, schema: { type: 'string', example: 'usr-003' }, description: 'ID del estudiante.' },
+          {
+            name: 'courseId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del estudiante.',
+          },
         ],
         responses: {
           200: {
             description: 'Promedio calculado.',
             content: {
               'application/json': {
-                schema: { type: 'object', properties: { success: { type: 'boolean', example: true }, data: { $ref: '#/components/schemas/AverageResponse' } } },
-                example: { success: true, data: { userId: 'usr-003', courseId: 'CS101', average: 75.67, totalModules: 3, minPassing: 60, isPassing: true } },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
-        },
-      },
-    },
-
-    '/certificates': {
-      post: {
-        tags: ['Certificados'],
-        summary: 'Generar certificado',
-        description: 'Emite un certificado si el promedio del estudiante en el curso es ≥ 60.\n\n- `403` si no aprueba\n- `409` si ya existe el certificado\n\n**Roles:** DOCENTE, ADMIN',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/CertificateRequest' },
-              example: { userId: 'usr-003', courseId: 'CS101' },
-            },
-          },
-        },
-        responses: {
-          201: { description: 'Certificado generado.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificate' } } } },
-          400: { $ref: '#/components/responses/BadRequest' },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: {
-            description: 'Sin permiso de rol o el estudiante no aprueba.',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                examples: {
-                  rolForbidden: { summary: 'Rol sin permiso',     value: { success: false, message: 'Acceso denegado. Rol requerido: DOCENTE o ADMIN.' } },
-                  noApproved:   { summary: 'No aprueba el curso', value: { success: false, message: 'El estudiante no cumple el promedio mínimo aprobatorio para recibir el certificado.' } },
-                },
-              },
-            },
-          },
-          404: { $ref: '#/components/responses/NotFound' },
-          409: { $ref: '#/components/responses/Conflict' },
-        },
-      },
-    },
-
-    '/certificates/{userId}': {
-      get: {
-        tags: ['Certificados'],
-        summary: 'Certificados de un usuario',
-        description: 'Lista todos los certificados emitidos a un usuario.\n\n**Roles:** ADMIN, DOCENTE (cualquier usuario) · ESTUDIANTE (solo los propios)',
-        parameters: [
-          { name: 'userId', in: 'path', required: true, schema: { type: 'string', example: 'usr-003' }, description: 'ID del usuario.' },
-        ],
-        responses: {
-          200: { description: 'Lista de certificados.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificateList' } } } },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
-        },
-      },
-    },
-
-    '/certificates/{userId}/course/{courseId}/download': {
-      get: {
-        tags: ['Certificados'],
-        summary: 'Descargar certificado',
-        description: 'Devuelve la URL de descarga/verificación del PDF del certificado.\n\n**Roles:** ADMIN, DOCENTE (cualquier usuario) · ESTUDIANTE (solo el propio)',
-        parameters: [
-          { name: 'userId',   in: 'path', required: true, schema: { type: 'string', example: 'usr-003' }, description: 'ID del usuario.' },
-          { name: 'courseId', in: 'path', required: true, schema: { type: 'string', example: 'CS101'  }, description: 'ID del curso.' },
-        ],
-        responses: {
-          200: {
-            description: 'URL de descarga.',
-            content: {
-              'application/json': {
                 schema: {
                   type: 'object',
-                  properties: { success: { type: 'boolean', example: true }, data: { $ref: '#/components/schemas/DownloadResponse' } },
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    data:    { $ref: '#/components/schemas/AverageResponse' },
+                  },
+                },
+                example: {
+                  success: true,
+                  data: {
+                    userId:       STUDENT_ID,
+                    courseId:     COURSE_ID,
+                    average:      81.5,
+                    totalModules: 2,
+                    minPassing:   60,
+                    isPassing:    true,
+                  },
                 },
               },
             },
@@ -388,30 +511,432 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
     '/grades/course/{courseId}/estadisticas': {
       get: {
         tags: ['Notas'],
-        summary: 'Estadísticas de un curso',
-        description: `Retorna estadísticas completas de todas las notas registradas en un curso.\n\n**Roles:** ADMIN, SuperAdmin`,
+        summary: 'Estadísticas completas de un curso',
+        description: `Retorna métricas globales y por módulo del curso: promedios, aprobados/reprobados, intentos, etc.
+
+**Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
-          { name: 'courseId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'ID del curso.' },
+          {
+            name: 'courseId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
         ],
         responses: {
           200: {
             description: 'Estadísticas del curso.',
             content: {
               'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    data:    { $ref: '#/components/schemas/EstadisticasCurso' },
+                  },
+                },
                 example: {
                   success: true,
                   data: {
-                    courseId:           'uuid-curso',
-                    total_estudiantes:  12,
-                    promedio_general:   72.5,
-                    total_aprobados:    9,
-                    total_reprobados:   3,
-                    nota_maxima:        98,
-                    nota_minima:        42,
+                    courseId:          COURSE_ID,
+                    total_estudiantes: 1,
+                    promedio_general:  77.07,
+                    total_aprobados:   12,
+                    total_reprobados:  2,
+                    nota_maxima:       100,
+                    nota_minima:       45,
+                    promedio_intentos: 3,
                     por_modulo: [
-                      { id_modulo: 'uuid-mod-1', total_estudiantes: 12, promedio: 75.3, nota_maxima: 98, nota_minima: 50 },
-                      { id_modulo: 'uuid-mod-2', total_estudiantes: 10, promedio: 69.8, nota_maxima: 92, nota_minima: 42 },
+                      { id_modulo: MODULE_ID, total_estudiantes: 1, promedio: 73.5, nota_maxima: 100, nota_minima: 45, promedio_intentos: 4.5, max_intentos: 8 },
                     ],
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    // ── Progreso ──────────────────────────────────────────────────────────────
+    '/progreso/contenido/{id_contenido}/completar': {
+      post: {
+        tags: ['Progreso'],
+        summary: 'Marcar contenido como completado',
+        description: `El estudiante marca un contenido como completado. El sistema:
+
+1. Valida que el contenido existe y está activo
+2. Verifica que no haya sido completado ya (idempotente: error 409)
+3. Registra el progreso en la tabla \`progreso_estudiante\`
+4. Recalcula el **porcentaje del curso** = *(completados / total activos) × 100*
+5. Si llega al **100%** automáticamente:
+   - Crea una **nota de 100** en el módulo
+   - Genera el **certificado del curso**
+
+**Roles permitidos:** Estudiante, Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id_contenido', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            description: 'UUID del contenido a completar.',
+          },
+        ],
+        requestBody: { required: false, content: {} },
+        responses: {
+          200: {
+            description: 'Progreso actualizado. Si el curso se completó al 100%, incluye nota y certificado.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string',  example: '¡Curso completado! Certificado generado automáticamente.' },
+                    data:    { $ref: '#/components/schemas/CompletarContenidoResponse' },
+                  },
+                },
+                examples: {
+                  enProgreso: {
+                    summary: 'Contenido completado — curso en progreso',
+                    value: {
+                      success: true,
+                      message: 'Progreso actualizado: 50%',
+                      data: {
+                        porcentaje: 50,
+                        contenidosCompletados: 1,
+                        totalContenidos: 2,
+                        completado: false,
+                        aprobado: false,
+                        nota: null,
+                        certificado: null,
+                      },
+                    },
+                  },
+                  cursoCompletado: {
+                    summary: 'Último contenido — curso completado al 100%',
+                    value: {
+                      success: true,
+                      message: '¡Curso completado! Certificado generado automáticamente.',
+                      data: {
+                        porcentaje: 100,
+                        contenidosCompletados: 2,
+                        totalContenidos: 2,
+                        completado: true,
+                        aprobado: true,
+                        nota: { id: 'uuid', score: 100, numeroIntento: 1 },
+                        certificado: { id: CERT_ID, url: 'https://certs.eduplatform.com/verify/...' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'Contenido inactivo.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'El contenido no está activo.' },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: {
+            description: 'Contenido no encontrado.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'Contenido no encontrado.' },
+              },
+            },
+          },
+          409: {
+            description: 'El estudiante ya completó este contenido.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'El estudiante ya completó este contenido.' },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/progreso/mis-cursos': {
+      get: {
+        tags: ['Progreso'],
+        summary: 'Mis cursos con progreso',
+        description: `Lista todos los cursos en los que el usuario autenticado tiene progreso registrado, con porcentaje y estado de completado.
+
+**Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
+        responses: {
+          200: {
+            description: 'Lista de cursos con progreso del usuario.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: [
+                    {
+                      id_progreso_curso:       'c7132421-c558-46b1-9edc-871643859181',
+                      id_usuario:              STUDENT_ID,
+                      id_curso:                COURSE_ID,
+                      porcentaje:              '100.00',
+                      contenidos_completados:  2,
+                      total_contenidos:        2,
+                      completado:              true,
+                      aprobado:                true,
+                      fecha_inicio:            '2026-05-08T05:56:33.303Z',
+                      fecha_completado:        '2026-05-08T05:56:36.067Z',
+                      titulo_curso:            'React 2.0',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+
+    '/progreso/curso/{id_curso}': {
+      get: {
+        tags: ['Progreso'],
+        summary: 'Progreso de un estudiante en un curso',
+        description: `Retorna el estado de progreso del usuario autenticado (o el especificado en \`?userId=\`) en un curso.
+
+Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porcentaje 0.
+
+**Query param opcional:** \`?userId=uuid\` — solo Admin/SuperAdmin/Docente pueden consultar el progreso de otros usuarios.
+
+**Roles permitidos:** Estudiante (solo el propio), Docente, Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id_curso', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
+          {
+            name: 'userId', in: 'query', required: false,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del estudiante a consultar (solo Admin/Docente).',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Progreso del estudiante en el curso.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    data:    { $ref: '#/components/schemas/ProgresoCurso' },
+                  },
+                },
+                example: {
+                  success: true,
+                  data: {
+                    id:                    'c7132421-c558-46b1-9edc-871643859181',
+                    idUsuario:             STUDENT_ID,
+                    idCurso:               COURSE_ID,
+                    porcentaje:            100,
+                    contenidosCompletados: 2,
+                    totalContenidos:       2,
+                    completado:            true,
+                    aprobado:              true,
+                    fechaInicio:           '2026-05-08T05:56:33.303Z',
+                    fechaCompletado:       '2026-05-08T05:56:36.067Z',
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+
+    '/progreso/curso/{id_curso}/todos': {
+      get: {
+        tags: ['Progreso'],
+        summary: 'Progreso de todos los estudiantes en un curso',
+        description: `Lista el progreso de todos los estudiantes que tienen actividad en el curso, ordenados por porcentaje descendente.
+
+Útil para el panel del docente o administrador.
+
+**Roles permitidos:** Admin, SuperAdmin, Docente`,
+        parameters: [
+          {
+            name: 'id_curso', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Lista de progreso por estudiante.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: [
+                    {
+                      id_progreso_curso:      'c7132421-c558-46b1-9edc-871643859181',
+                      id_usuario:             STUDENT_ID,
+                      id_curso:               COURSE_ID,
+                      porcentaje:             '100.00',
+                      contenidos_completados: 2,
+                      total_contenidos:       2,
+                      completado:             true,
+                      aprobado:               true,
+                      fecha_inicio:           '2026-05-08T05:56:33.303Z',
+                      fecha_completado:       '2026-05-08T05:56:36.067Z',
+                      nombre_estudiante:      null,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+
+    // ── Certificados ──────────────────────────────────────────────────────────
+    '/certificates': {
+      post: {
+        tags: ['Certificados'],
+        summary: 'Generar certificado manualmente',
+        description: `Emite un certificado para un estudiante en un curso.
+
+**Requisito:** el estudiante debe tener el 100 % del curso completado en \`progreso_curso\`.
+
+- \`403\` si el progreso no es 100 %
+- \`409\` si el certificado ya fue emitido
+
+> El certificado también se genera **automáticamente** al completar el último contenido del curso.
+
+**Roles permitidos:** Admin (no Docente, no SuperAdmin)`,
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CertificateRequest' },
+              example: { userId: STUDENT_ID, courseId: COURSE_ID },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Certificado generado.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificate' } } },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: {
+            description: 'Sin permiso de rol o el curso no está completado al 100 %.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                examples: {
+                  rolForbidden: {
+                    summary: 'Rol sin permiso',
+                    value: { success: false, message: 'Acceso denegado. Rol insuficiente.' },
+                  },
+                  noCompletado: {
+                    summary: 'Progreso menor al 100 %',
+                    value: { success: false, message: 'El estudiante debe completar el 100% del curso para recibir el certificado.' },
+                  },
+                },
+              },
+            },
+          },
+          404: { $ref: '#/components/responses/NotFound' },
+          409: { $ref: '#/components/responses/Conflict' },
+        },
+      },
+    },
+
+    '/certificates/{userId}': {
+      get: {
+        tags: ['Certificados'],
+        summary: 'Certificados de un usuario',
+        description: `Lista todos los certificados emitidos a un usuario.
+
+**Roles permitidos:** Admin, SuperAdmin, Docente (cualquier usuario) · Estudiante (solo los propios)`,
+        parameters: [
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del usuario.',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Lista de certificados.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificateList' } } },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    '/certificates/{userId}/course/{courseId}/download': {
+      get: {
+        tags: ['Certificados'],
+        summary: 'Descargar certificado',
+        description: `Devuelve la URL de verificación/descarga del PDF y marca el certificado como descargado.
+
+El campo \`descargadoEn\` se registra solo la primera vez.
+
+**Roles permitidos:** Admin, SuperAdmin, Docente · Estudiante (solo el propio)`,
+        parameters: [
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del usuario.',
+          },
+          {
+            name: 'courseId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'UUID del curso.',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'URL de descarga del certificado.',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    data:    { $ref: '#/components/schemas/DownloadResponse' },
+                  },
+                },
+                example: {
+                  success: true,
+                  data: {
+                    message:          'Descarga lista. Accede a la URL para obtener el PDF.',
+                    downloadUrl:      'https://certs.eduplatform.com/verify/4fd91d4a-274b-46d7-85e8-9f7329f657ea',
+                    imagenUrl:        null,
+                    nombreEstudiante: null,
+                    nombreCurso:      null,
+                    descargado:       true,
+                    descargadoEn:     '2026-05-09T12:53:55.988Z',
+                    certificate:      { id: CERT_ID, userId: STUDENT_ID, courseId: COURSE_ID },
                   },
                 },
               },
@@ -429,35 +954,32 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
       post: {
         tags: ['Evaluaciones'],
         summary: 'Responder evaluación de un contenido',
-        description: `El estudiante envía sus respuestas para todas las preguntas de un contenido.\n\nEl sistema:\n1. Valida que no haya respondido antes\n2. Verifica que cada opción pertenece a su pregunta\n3. Calcula el puntaje: *(correctas / total) × 100*\n4. **Crea automáticamente una nota** con la calificación obtenida\n\n**Roles:** ESTUDIANTE, ADMIN`,
+        description: `El estudiante envía sus respuestas para todas las preguntas de la evaluación de un contenido.
+
+El sistema:
+1. Verifica que el estudiante no haya respondido antes esta evaluación (única por usuario/evaluación)
+2. Valida que cada opción seleccionada pertenece a su pregunta
+3. Calcula la calificación: *(puntaje_correctas / puntaje_total) × 100*
+4. **Crea automáticamente una nota** con la calificación obtenida en el módulo del contenido
+
+**Roles permitidos:** Estudiante, Admin`,
         parameters: [
-          { name: 'id_contenido', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del contenido.' },
+          {
+            name: 'id_contenido', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            description: 'UUID del contenido que contiene la evaluación.',
+          },
         ],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: {
-                type: 'object',
-                required: ['respuestas'],
-                properties: {
-                  respuestas: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      required: ['idEvaluacion', 'idOpcion'],
-                      properties: {
-                        idEvaluacion: { type: 'integer', example: 1 },
-                        idOpcion:     { type: 'integer', example: 3 },
-                      },
-                    },
-                  },
-                },
-              },
+              schema: { $ref: '#/components/schemas/EvaluacionRespuestaRequest' },
               example: {
                 respuestas: [
                   { idEvaluacion: 1, idOpcion: 2 },
                   { idEvaluacion: 2, idOpcion: 5 },
+                  { idEvaluacion: 3, idOpcion: 7 },
                 ],
               },
             },
@@ -465,19 +987,26 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
         },
         responses: {
           201: {
-            description: 'Evaluación respondida y nota creada automáticamente.',
+            description: 'Evaluación respondida. Nota creada automáticamente.',
             content: {
               'application/json': {
                 example: {
                   success: true,
                   data: {
-                    nota:            { id: 'uuid', score: 75, courseId: 'uuid', moduleId: 'uuid' },
+                    nota: {
+                      id: 'uuid-nota',
+                      userId: STUDENT_ID,
+                      courseId: COURSE_ID,
+                      moduleId: MODULE_ID,
+                      score: 75,
+                      numeroIntento: 1,
+                    },
                     calificacion:    75,
                     puntajeObtenido: 15,
                     puntajeTotal:    20,
                     detalle: [
-                      { idEvaluacion: 1, enunciado: '¿Qué es React?', esCorrecta: true,  puntaje: 10 },
-                      { idEvaluacion: 2, enunciado: '¿Qué es un hook?', esCorrecta: false, puntaje: 10 },
+                      { idEvaluacion: 1, enunciado: '¿Qué es un componente en React?', esCorrecta: true,  puntaje: 10 },
+                      { idEvaluacion: 2, enunciado: '¿Qué hace useState?',             esCorrecta: false, puntaje: 10 },
                     ],
                   },
                 },
@@ -487,8 +1016,24 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
           400: { $ref: '#/components/responses/BadRequest' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
-          409: { $ref: '#/components/responses/Conflict' },
+          404: {
+            description: 'Contenido o evaluación no encontrado.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'No se encontraron preguntas para este contenido.' },
+              },
+            },
+          },
+          409: {
+            description: 'El estudiante ya respondió esta evaluación.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'Ya respondiste la evaluación de este contenido.' },
+              },
+            },
+          },
         },
       },
     },
@@ -496,11 +1041,21 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
     '/evaluaciones/contenido/{id_contenido}/resultado/{userId}': {
       get: {
         tags: ['Evaluaciones'],
-        summary: 'Consultar resultado de evaluación',
-        description: `Retorna el detalle del resultado de un estudiante en la evaluación de un contenido.\n\n**Roles:** ADMIN, DOCENTE (cualquier estudiante) · ESTUDIANTE (solo el propio)`,
+        summary: 'Resultado de evaluación de un estudiante',
+        description: `Retorna el detalle del resultado de un estudiante en la evaluación de un contenido, incluyendo puntaje y calificación.
+
+**Roles permitidos:** Admin, SuperAdmin, Docente (cualquier estudiante) · Estudiante (solo el propio)`,
         parameters: [
-          { name: 'id_contenido', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del contenido.' },
-          { name: 'userId',       in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'UUID del estudiante.' },
+          {
+            name: 'id_contenido', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            description: 'UUID del contenido.',
+          },
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del estudiante.',
+          },
         ],
         responses: {
           200: {
@@ -510,8 +1065,8 @@ Todos los endpoints requieren un **Bearer Token** en el header \`Authorization\`
                 example: {
                   success: true,
                   data: {
-                    userId:          'uuid-estudiante',
-                    idContenido:     'uuid-contenido',
+                    userId:          STUDENT_ID,
+                    idContenido:     CONTENT_ID,
                     calificacion:    75,
                     puntajeObtenido: 15,
                     puntajeTotal:    20,
