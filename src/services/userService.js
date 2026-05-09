@@ -67,7 +67,7 @@ export const createUser = async ({ nombre, correo, contrasena, roleNames, actorR
     nombre,
     correo,
     passwordHash,
-    roleIds: roles.map((role) => role.id),
+    roleIds: roles.map((role) => role.id_rol),
   });
 
   const createdUser = await findUserById(userId, { onlyActive: false });
@@ -105,7 +105,7 @@ export const updateUser = async ({ id, nombre, roleNames, actorRoles }) => {
     await updateUserRecord({
       id,
       nombre,
-      roleIds: roles.map((role) => role.id),
+      roleIds: roles.map((role) => role.id_rol),
     });
   } else if (nombre) {
     await updateUserRecord({ id, nombre });

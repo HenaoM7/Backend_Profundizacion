@@ -1,5 +1,12 @@
 export const rolePermissions = {
   SuperAdmin: [
+    'usuarios.ver',
+    'usuarios.asignarRoles',
+    'roles.ver',
+    'permisos.ver',
+    'sistema.personalizar',
+    'competencias.gestionar',
+    'parametros.globales.gestionar',
     'instituciones.ver',
     'configuracion.institucional.editar',
     'usuarios.crear',
@@ -40,9 +47,13 @@ export const rolePermissions = {
     'contenidos.eliminar',
     'contenidos.ver',
     'reportes.institucionales.ver',
+    'roles.ver',
+    'permisos.ver'
   ],
   Docente: [
     'cursos.asignados.ver',
+    'cursos.crear',
+    'cursos.asignar',
     'modulos.crear',
     'modulos.editar',
     'modulos.eliminar.propios',
@@ -63,6 +74,7 @@ export const rolePermissions = {
     'actividades.participar',
     'progreso.ver',
     'calificaciones.ver.propias',
+    'certificados.obtener',
   ],
 };
 
