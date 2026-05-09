@@ -3,7 +3,7 @@ import { query } from '../database/db.js';
 export const listRoles = async () => {
   const result = await query(
     `
-      SELECT id_rol as id, nombre, activo, creacion, actualizacion
+      SELECT id_rol, nombre, activo, creacion, actualizacion
       FROM rol
       ORDER BY nombre ASC
     `
@@ -19,7 +19,7 @@ export const findActiveRolesByNames = async (roleNames = []) => {
 
   const result = await query(
     `
-      SELECT id_rol as id, nombre
+      SELECT id_rol, nombre
       FROM rol
       WHERE nombre = ANY($1::varchar[])
         AND activo = TRUE
