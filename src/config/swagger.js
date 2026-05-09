@@ -1,9 +1,4 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const options = {
   definition: {
@@ -20,6 +15,13 @@ const options = {
       },
     ],
     components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
       schemas: {
         Documento: {
           type: 'object',
@@ -31,13 +33,11 @@ const options = {
             tamanio:   { type: 'integer', example: 204800 },
             creado_en: { type: 'string',  format: 'date-time' },
           },
-        },
+          }
       },
     },
   },
-  apis: [
-    path.join(__dirname, '../routes/archivos/documentosRouter.js'),
-  ],
+  apis: ['./src/routes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);  // ✅ Debe ser el RESULTADO, no una función
