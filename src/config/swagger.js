@@ -69,7 +69,7 @@ Authorization: Bearer token-estudiante-001
       BearerAuth: {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'Token',
+        bearerFormat: 'JWT',
         description: 'Ingresa uno de los tokens de prueba listados en la descripción de la API.',
       },
     },

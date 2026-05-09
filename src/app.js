@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
+import authRoutes from './routes/authRoutes.js';
+import roleRoutes from './routes/roleRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import institucionRoutes from './routes/institucionRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import gradeRoutes from './routes/gradeRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
@@ -40,6 +44,11 @@ app.use('/grades',       gradeRoutes);
 app.use('/certificates', certificateRoutes);
 app.use('/evaluaciones', evaluacionRoutes);
 app.use('/progreso',     progresoRoutes);
+
+app.use('/api/auth',        authRoutes);
+app.use('/api/roles',       roleRoutes);
+app.use('/api/users',       userRoutes);
+app.use('/api/institucion', institucionRoutes);
 
 app.use((_req, res) =>
   res.status(404).json({ success: false, message: 'Ruta no encontrada.' })

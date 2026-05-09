@@ -1,9 +1,9 @@
 export const errorHandler = (err, req, res, next) => {
-  const status  = err.status  || 500;
+  const status  = err.status || err.statusCode || 500;
   const message = err.message || 'Error interno del servidor';
 
-  if (status === 500) {
-    console.error('[ErrorHandler]', err.stack);
+  if (status >= 500) {
+    console.error('[ErrorHandler]', err.stack || err);
   }
 
   res.status(status).json({ success: false, message });
