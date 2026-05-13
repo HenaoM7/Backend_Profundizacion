@@ -14,6 +14,7 @@ const options = {
         description: 'Servidor de desarrollo',
       },
     ],
+    tags: [{ name: 'Teacher', description: 'Orquestación Vista Docente (Equipo 6)' }],
     components: {
       schemas: {
       },
