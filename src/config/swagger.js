@@ -63,6 +63,7 @@ Authorization: Bearer token-estudiante-001
     { name: 'Progreso',     description: 'Seguimiento de avance por contenido; al 100% genera nota y certificado automáticamente' },
     { name: 'Certificados', description: 'Generación, consulta y descarga de certificados de finalización' },
     { name: 'Evaluaciones', description: 'Envío de respuestas con corrección automática y creación de nota' },
+    { name: 'Teacher', description: 'Orquestación Vista Docente (Equipo 6)' },
   ],
   components: {
     securitySchemes: {
@@ -1084,5 +1085,8 @@ El sistema:
   },
 };
 
-const swaggerSpec = swaggerJsdoc({ definition, apis: [] });
+const swaggerSpec = swaggerJsdoc({
+  definition,
+  apis: ['./src/routes/teacher.routes.js'],
+});
 export default swaggerSpec;
