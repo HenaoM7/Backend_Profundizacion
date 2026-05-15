@@ -20,7 +20,7 @@ router.get('/health', estadoVistaDocente);
  * /api/teacher/dashboard/summary:
  *   get:
  *     tags: [Teacher]
- *     summary: Resumen docente (totales, cursos en proceso, lista de cursos)
+ *     summary: Resumen docente (totales y lista de cursos)
  *     parameters:
  *       - in: query
  *         name: teacher_id
