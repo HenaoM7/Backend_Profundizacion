@@ -6,11 +6,10 @@ import authRoutes from './routes/authRoutes.js';
 import roleRoutes from './routes/roleRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import institucionRoutes from './routes/institucionRoutes.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import gradeRoutes from './routes/gradeRoutes.js';
-import certificateRoutes from './routes/certificateRoutes.js';
-import evaluacionRoutes from './routes/evaluacionRoutes.js';
-import progresoRoutes   from './routes/progresoRoutes.js';
+import { errorHandler }    from './middleware/errorHandler.js';
+import certificateRoutes  from './routes/certificateRoutes.js';
+import progresoRoutes     from './routes/progresoRoutes.js';
+import validacionRoutes   from './routes/validacionRoutes.js';
 
 const app = express();
 
@@ -40,10 +39,9 @@ app.get('/health', (_req, res) =>
   res.json({ status: 'UP', service: 'PlataformaIUSH-Backend', version: '1.0.0' })
 );
 
-app.use('/grades',       gradeRoutes);
 app.use('/certificates', certificateRoutes);
-app.use('/evaluaciones', evaluacionRoutes);
 app.use('/progreso',     progresoRoutes);
+app.use('/validacion',   validacionRoutes);
 
 app.use('/api/auth',        authRoutes);
 app.use('/api/roles',       roleRoutes);

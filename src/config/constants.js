@@ -5,8 +5,6 @@ export const ROLES = Object.freeze({
   ESTUDIANTE:  'Estudiante',
 });
 
-export const MIN_PASSING_SCORE = 60;
-
 // Tokens de prueba mapeados a usuarios reales de la BD
 export const MOCK_TOKENS = Object.freeze({
   'token-superadmin-001': {

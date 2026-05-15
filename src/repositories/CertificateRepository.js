@@ -1,74 +1,33 @@
-import { query, getClient } from '../database/db.js';
-import { Certificate } from '../models/Certificate.js';
-import { randomUUID } from 'crypto';
+import { query }              from '../database/db.js';
+import { Certificate }         from '../models/Certificate.js';
+import { PlantillaCertificado } from '../models/PlantillaCertificado.js';
 
-const getOrCreateTipoDocumentoCertificado = async (client) => {
-  const existing = await client.query(
-    "SELECT id_tipo_documento FROM tipo_documento WHERE nombre = 'Certificado' LIMIT 1"
+export const save = async ({ userId, courseId, url, nombreEstudiante, nombreCurso, htmlRenderizado }) => {
+  const result = await query(
+    `INSERT INTO certificado
+       (id_usuario, id_curso, url, nombre_estudiante, nombre_curso, html_renderizado)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [userId, courseId, url, nombreEstudiante ?? null, nombreCurso ?? null, htmlRenderizado ?? null]
   );
-  if (existing.rows.length) return existing.rows[0].id_tipo_documento;
-
-  const inserted = await client.query(
-    "INSERT INTO tipo_documento (nombre, estado) VALUES ('Certificado', 'S') RETURNING id_tipo_documento"
-  );
-  return inserted.rows[0].id_tipo_documento;
+  return Certificate.fromRow(result.rows[0]);
 };
 
-const createMaestroDocumento = async (client, { numeroCertificado, idTipoDoc, url }) => {
-  const maxResult = await client.query(
-    'SELECT COALESCE(MAX(id_maestro_documento), 0) + 1 AS next_id FROM maestro_documento FOR UPDATE'
-  );
-  const nextId = maxResult.rows[0].next_id;
-
-  await client.query(
-    `INSERT INTO maestro_documento (id_maestro_documento, numero_documento, id_tipo_documento, ruta_documento, activo)
-     VALUES ($1, $2, $3, $4, 'S')`,
-    [nextId, numeroCertificado, idTipoDoc, url]
-  );
-  return nextId;
-};
-
-export const save = async ({ userId, courseId, imagenUrl = null, nombreEstudiante = null, nombreCurso = null }) => {
-  const verifyId   = randomUUID();
-  const url        = `https://certs.eduplatform.com/verify/${verifyId}`;
-  const numeroCert = `CERT-${Date.now()}`.slice(0, 20);
-  const client     = await getClient();
-
-  try {
-    await client.query('BEGIN');
-
-    const idTipoDoc    = await getOrCreateTipoDocumentoCertificado(client);
-    const idMaestroDoc = await createMaestroDocumento(client, {
-      numeroCertificado: numeroCert,
-      idTipoDoc,
-      url,
-    });
-
-    const result = await client.query(
-      `INSERT INTO certificado
-         (id_usuario, id_curso, url, id_maestro_documento, imagen_url, nombre_estudiante, nombre_curso)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [userId, courseId, url, idMaestroDoc, imagenUrl, nombreEstudiante, nombreCurso]
-    );
-
-    await client.query('COMMIT');
-    return Certificate.fromRow(result.rows[0]);
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  } finally {
-    client.release();
-  }
-};
-
-export const marcarDescargado = async (userId, courseId) => {
+export const marcarDescargado = async (idCertificado) => {
   const result = await query(
     `UPDATE certificado
      SET descargado = true, descargado_en = NOW()
-     WHERE id_usuario = $1 AND id_curso = $2 AND descargado = false
+     WHERE id_certificado = $1 AND descargado = false
      RETURNING *`,
-    [userId, courseId]
+    [idCertificado]
+  );
+  return result.rows[0] ? Certificate.fromRow(result.rows[0]) : null;
+};
+
+export const findById = async (idCertificado) => {
+  const result = await query(
+    'SELECT * FROM certificado WHERE id_certificado = $1',
+    [idCertificado]
   );
   return result.rows[0] ? Certificate.fromRow(result.rows[0]) : null;
 };
@@ -87,4 +46,43 @@ export const findByUserIdAndCourseId = async (userId, courseId) => {
     [userId, courseId]
   );
   return result.rows[0] ? Certificate.fromRow(result.rows[0]) : null;
+};
+
+export const findByCodigoVerificacion = async (codigo) => {
+  const result = await query(
+    'SELECT * FROM certificado WHERE codigo_verificacion = $1',
+    [codigo]
+  );
+  return result.rows[0] ? Certificate.fromRow(result.rows[0]) : null;
+};
+
+export const findDatosParaCertificado = async (userId, courseId) => {
+  const result = await query(
+    `SELECT u.nombre AS nombre_estudiante, cu.titulo AS nombre_curso
+     FROM usuario u, curso cu
+     WHERE u.id_usuario = $1 AND cu.id_curso = $2`,
+    [userId, courseId]
+  );
+  return result.rows[0] ?? null;
+};
+
+export const findPlantillaByCurso = async (idCurso) => {
+  const result = await query(
+    'SELECT * FROM plantilla_certificado WHERE id_curso = $1 AND activo = true',
+    [idCurso]
+  );
+  return result.rows[0] ? PlantillaCertificado.fromRow(result.rows[0]) : null;
+};
+
+export const upsertPlantilla = async (idCurso, htmlTemplate) => {
+  const result = await query(
+    `INSERT INTO plantilla_certificado (id_curso, html_template)
+     VALUES ($1, $2)
+     ON CONFLICT (id_curso) DO UPDATE SET
+       html_template = EXCLUDED.html_template,
+       activo        = true
+     RETURNING *`,
+    [idCurso, htmlTemplate]
+  );
+  return PlantillaCertificado.fromRow(result.rows[0]);
 };
