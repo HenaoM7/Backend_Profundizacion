@@ -3,7 +3,7 @@ import { rolePermissions } from '../security/accessControl.js';
 
 const assignableRolesByActor = {
   SuperAdmin: ['Admin', 'Docente', 'Estudiante'],
-  Admin: ['Docente', 'Estudiante'],
+  Admin: ['Admin','Docente', 'Estudiante'],
 };
 
 export const getAssignableRoleNames = (actorRoles = []) => {
