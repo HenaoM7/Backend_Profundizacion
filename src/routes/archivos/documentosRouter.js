@@ -27,24 +27,6 @@ router.get('/', ctrl.listar.bind(ctrl));
 
 /**
  * @swagger
- * /api/documentos/buscar:
- *   get:
- *     summary: Busca documentos
- *     tags: [Documentos]
- *     responses:
- *       200:
- *         description: Resultados de búsqueda
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Documento'
- */
-router.get('/buscar', ctrl.buscar.bind(ctrl));
-
-/**
- * @swagger
  * /api/documentos/{id}:
  *   get:
  *     summary: Obtiene un documento por ID
@@ -53,7 +35,7 @@ router.get('/buscar', ctrl.buscar.bind(ctrl));
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID del documento
  *     responses:
@@ -78,7 +60,7 @@ router.get('/:id', ctrl.obtener.bind(ctrl));
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID del documento a descargar
  *     responses:
@@ -134,7 +116,7 @@ router.post('/', upload.single('archivo'), ctrl.subir.bind(ctrl));
  *       - in: path
  *         name: id
  *         schema:
- *           type: integer
+ *           type: string
  *         required: true
  *         description: ID del documento a eliminar
  *     responses:

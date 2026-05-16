@@ -26,20 +26,22 @@ const options = {
         Documento: {
           type: 'object',
           properties: {
-            id:        { type: 'integer', example: 1 },
-            nombre:    { type: 'string',  example: 'guia-laboratorio.pdf' },
-            drive_id:  { type: 'string',  example: '1BxiMVs0XRA5nF...' },
-            mime_type: { type: 'string',  example: 'application/pdf' },
-            tamanio:   { type: 'integer', example: 204800 },
-            creado_en: { type: 'string',  format: 'date-time' },
+            id:         { type: 'string',  example: 'ASsjd9s0as0d' },
+            nombre:     { type: 'string',  example: 'guia-laboratorio.pdf' },
+            drive_id:   { type: 'string',  example: '1BxiMVs0XRA5nF...' },
+            mime_type:  { type: 'string',  example: 'application/pdf' },
+            tamanio:    { type: 'integer', example: 204800 },
+            creado_en:  { type: 'string',  format: 'date-time' },
           },
-          }
+        },
       },
     },
   },
-  apis: ['./src/routes/*.js'],
+  apis: [
+    './src/routes/*.js',
+    './src/routes/**/*.js',
+  ],
 };
 
-const swaggerSpec = swaggerJsdoc(options);  // ✅ Debe ser el RESULTADO, no una función
-
-export default swaggerSpec;  // ✅ Exportar el objeto, no una función
+const swaggerSpec = swaggerJsdoc(options);
+export default swaggerSpec;
