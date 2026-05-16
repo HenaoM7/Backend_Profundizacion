@@ -31,9 +31,11 @@ export const login = async ({ correo, contrasena }) => {
 
   const { secret, expiresIn } = readJwtConfig();
   const token = jwt.sign(buildTokenPayload(user), secret, { expiresIn });
+  const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
   return {
     token,
+    token_expires: expiresAt.toISOString(),
     user: sanitizeUser(user),
   };
 };

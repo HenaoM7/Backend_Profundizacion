@@ -7,6 +7,7 @@ const baseUserSelect = `
     u.correo,
     u.contrasena,
     u.activo,
+    u.creado_por,
     u.creacion,
     u.actualizacion,
     COALESCE(ARRAY_REMOVE(ARRAY_AGG(r.nombre ORDER BY r.nombre), NULL), '{}') AS roles
@@ -93,7 +94,7 @@ export const listUsers = async ({ nombre, fechaDesde, fechaHasta } = {}) => {
   return result.rows;
 };
 
-export const createUser = async ({ id, nombre, correo, passwordHash, roleIds }) => {
+export const createUser = async ({ id, nombre, correo, passwordHash, createdBy, roleIds }) => {
   const client = await getClient();
 
   try {
@@ -101,10 +102,10 @@ export const createUser = async ({ id, nombre, correo, passwordHash, roleIds }) 
 
     await client.query(
       `
-        INSERT INTO usuario (id_usuario, nombre, correo, contrasena, activo)
-        VALUES ($1, $2, $3, $4, TRUE)
+        INSERT INTO usuario (id_usuario, nombre, correo, contrasena, activo, creado_por)
+        VALUES ($1, $2, $3, $4, TRUE, $5)
       `,
-      [id, nombre, correo, passwordHash]
+      [id, nombre, correo, passwordHash, createdBy]
     );
 
     for (const roleId of roleIds) {
