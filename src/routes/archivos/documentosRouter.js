@@ -1,68 +1,49 @@
-import { Router } from 'express';
-import multer from 'multer';
-import ctrl from '../../controllers/archivos/documentoController.js';
+import { Router } from "express";
+import multer from "multer";
+import ctrl from "../../controllers/archivos/documentoController.js";
 
 const router = Router();
 
-// multer en memoria (no guarda en disco)
-const upload = multer({ storage: multer.memoryStorage() });
+// multer en memoria — no toca el disco hasta que el servicio lo decide
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB máximo por archivo
+    },
+});
 
 /**
  * @swagger
  * /api/documentos:
  *   get:
- *     summary: Lista todos los documentos
- *     tags: [Documentos]
- *     responses:
- *       200:
- *         description: Lista de documentos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Documento'
- */
-router.get('/', ctrl.listar.bind(ctrl));
-
-/**
- * @swagger
- * /api/documentos/{id}:
- *   get:
- *     summary: Obtiene un documento por ID
+ *     summary: Lista archivos de una carpeta
  *     tags: [Documentos]
  *     parameters:
- *       - in: path
- *         name: id
+ *       - in: query
+ *         name: carpeta
  *         schema:
  *           type: string
- *         required: true
- *         description: ID del documento
+ *           enum: [documentos, imagenes, reportes]
+ *           default: documentos
  *     responses:
  *       200:
- *         description: Documento encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Documento'
- *       404:
- *         description: Documento no encontrado
+ *         description: Lista de archivos
  */
-router.get('/:id', ctrl.obtener.bind(ctrl));
+router.get("/", ctrl.listar.bind(ctrl));
 
 /**
  * @swagger
  * /api/documentos/{id}/descargar:
  *   get:
- *     summary: Descarga un documento
+ *     summary: Descarga un archivo
  *     tags: [Documentos]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID del documento a descargar
+ *         description: ID del archivo (ej. "documentos/1234_archivo.pdf")
  *     responses:
  *       200:
  *         description: Archivo descargado
@@ -72,15 +53,15 @@ router.get('/:id', ctrl.obtener.bind(ctrl));
  *               type: string
  *               format: binary
  *       404:
- *         description: Documento no encontrado
+ *         description: Archivo no encontrado
  */
-router.get('/:id/descargar', ctrl.descargar.bind(ctrl));
+router.get("/:id/descargar", ctrl.descargar.bind(ctrl));
 
 /**
  * @swagger
  * /api/documentos:
  *   post:
- *     summary: Sube un nuevo documento
+ *     summary: Sube un archivo
  *     tags: [Documentos]
  *     requestBody:
  *       required: true
@@ -92,39 +73,39 @@ router.get('/:id/descargar', ctrl.descargar.bind(ctrl));
  *               archivo:
  *                 type: string
  *                 format: binary
+ *               carpeta:
+ *                 type: string
+ *                 enum: [documentos, imagenes, reportes]
+ *                 default: documentos
  *             required:
  *               - archivo
  *     responses:
  *       201:
- *         description: Documento subido exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Documento'
+ *         description: Archivo subido exitosamente
  *       400:
- *         description: Error en la solicitud
+ *         description: No se envió archivo
  */
-router.post('/', upload.single('archivo'), ctrl.subir.bind(ctrl));
+router.post("/", upload.single("archivo"), ctrl.subir.bind(ctrl));
 
 /**
  * @swagger
  * /api/documentos/{id}:
  *   delete:
- *     summary: Elimina un documento
+ *     summary: Elimina un archivo
  *     tags: [Documentos]
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: ID del documento a eliminar
+ *         description: ID del archivo (ej. "documentos/1234_archivo.pdf")
  *     responses:
- *       204:
- *         description: Documento eliminado exitosamente
+ *       200:
+ *         description: Archivo eliminado
  *       404:
- *         description: Documento no encontrado
+ *         description: Archivo no encontrado
  */
-router.delete('/:id', ctrl.eliminar.bind(ctrl));
+router.delete("/:id", ctrl.eliminar.bind(ctrl));
 
 export default router;
