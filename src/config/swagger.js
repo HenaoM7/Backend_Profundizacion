@@ -64,6 +64,7 @@ Authorization: Bearer token-estudiante-001
     { name: 'Certificados', description: 'Generación, consulta y descarga de certificados de finalización' },
     { name: 'Evaluaciones', description: 'Envío de respuestas con corrección automática y creación de nota' },
     { name: 'Teacher', description: 'Orquestación Vista Docente (Equipo 6)' },
+    { name: 'Admin Dashboard', description: 'Reportes del panel administrativo' },
   ],
   components: {
     securitySchemes: {
@@ -1082,11 +1083,42 @@ El sistema:
         },
       },
     },
+
+    // ── Admin Dashboard ───────────────────────────────────────────────────────
+    '/api/admin/dashboard/usuarios-total': {
+      get: {
+        tags: ['Admin Dashboard'],
+        summary: 'Total de usuarios creados por el admin autenticado',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Total de usuarios registrados',
+            content: {
+              'application/json': {
+                example: {
+                  ok: true,
+                  data: { totalUsuarios: 12 },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          500: {
+            description: 'Error interno del servidor',
+            content: {
+              'application/json': {
+                example: { ok: false, message: 'Error interno del servidor' },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 };
 
 const swaggerSpec = swaggerJsdoc({
   definition,
-  apis: ['./src/routes/teacher.routes.js'],
+  apis: ['./src/routes/teacher.routes.js','./src/routes/adminDashboardRoutes.js'],
 });
 export default swaggerSpec;
