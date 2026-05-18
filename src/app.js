@@ -12,6 +12,7 @@ import gradeRoutes from './routes/gradeRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import evaluacionRoutes from './routes/evaluacionRoutes.js';
 import progresoRoutes from './routes/progresoRoutes.js';
+import reportesRoutes from './routes/reportesRoutes.js';
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/institucion', institucionRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 app.use((_req, res) =>
   res.status(404).json({ success: false, message: 'Ruta no encontrada.' })
