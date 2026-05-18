@@ -27,6 +27,7 @@ export const sanitizeUser = (user) => {
     permisos: getPermissionsForRoles(roles),
     creacion: user.creacion,
     actualizacion: user.actualizacion,
+    ultimoAcceso: user.ultimo_acceso || null,
   };
 };
 
