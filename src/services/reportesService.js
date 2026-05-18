@@ -33,37 +33,109 @@ export const getCursosPopulares = async ({ cursoId } = {}) => {
   return result.rows;
 };
 
-// Label is derived from period_key (already-grouped date), not from raw fecha_inscripcion.
-// This avoids the GROUP BY issue: the CTE groups first, outer query just formats the label.
-const MONTH_LABEL_FROM_KEY = `CASE EXTRACT(MONTH FROM period_key)::int
-    WHEN 1 THEN 'Enero'    WHEN 2 THEN 'Febrero'   WHEN 3 THEN 'Marzo'
-    WHEN 4 THEN 'Abril'    WHEN 5 THEN 'Mayo'       WHEN 6 THEN 'Junio'
-    WHEN 7 THEN 'Julio'    WHEN 8 THEN 'Agosto'     WHEN 9 THEN 'Septiembre'
-    WHEN 10 THEN 'Octubre' WHEN 11 THEN 'Noviembre' WHEN 12 THEN 'Diciembre'
-  END || ' ' || EXTRACT(YEAR FROM period_key)::TEXT`;
+// Spanish month name from a series alias column (s.period_key)
+const MONTH_LABEL_SERIES = `CASE EXTRACT(MONTH FROM s.period_key)::int
+  WHEN 1  THEN 'Enero'      WHEN 2  THEN 'Febrero'   WHEN 3  THEN 'Marzo'
+  WHEN 4  THEN 'Abril'      WHEN 5  THEN 'Mayo'       WHEN 6  THEN 'Junio'
+  WHEN 7  THEN 'Julio'      WHEN 8  THEN 'Agosto'     WHEN 9  THEN 'Septiembre'
+  WHEN 10 THEN 'Octubre'    WHEN 11 THEN 'Noviembre'  WHEN 12 THEN 'Diciembre'
+END || ' ' || EXTRACT(YEAR FROM s.period_key)::TEXT`;
 
-const buildPeriodExpressions = (agrupacion) => {
+// Spanish month name from a plain CTE column named period_key (custom mode)
+const MONTH_LABEL_CTE = `CASE EXTRACT(MONTH FROM period_key)::int
+  WHEN 1  THEN 'Enero'      WHEN 2  THEN 'Febrero'   WHEN 3  THEN 'Marzo'
+  WHEN 4  THEN 'Abril'      WHEN 5  THEN 'Mayo'       WHEN 6  THEN 'Junio'
+  WHEN 7  THEN 'Julio'      WHEN 8  THEN 'Agosto'     WHEN 9  THEN 'Septiembre'
+  WHEN 10 THEN 'Octubre'    WHEN 11 THEN 'Noviembre'  WHEN 12 THEN 'Diciembre'
+END || ' ' || EXTRACT(YEAR FROM period_key)::TEXT`;
+
+// Shared year-bounds CTE — always current year, no params needed
+const YEAR_BOUNDS_CTE = `year_bounds AS (
+  SELECT
+    DATE_TRUNC('year', CURRENT_DATE)::DATE                                      AS year_start,
+    (DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year' - INTERVAL '1 day')::DATE AS year_end
+)`;
+
+// Date filter that references year_bounds — used inside keyword-mode counts CTEs
+const YEAR_DATE_FILTER = `fecha_inscripcion >= (SELECT year_start FROM year_bounds)
+         AND fecha_inscripcion <= (SELECT year_end FROM year_bounds)`;
+
+// Builds a complete generate_series query for keyword agrupacion modes.
+// cursoFilter is '' or 'AND curso_id = $1'.
+const buildSeriesQuery = (agrupacion, cursoFilter) => {
   switch (agrupacion) {
     case 'trimestral':
-      return {
-        periodKey: `DATE_TRUNC('quarter', fecha_inscripcion)`,
-        label:     `'T' || EXTRACT(QUARTER FROM period_key)::TEXT || ' ' || EXTRACT(YEAR FROM period_key)::TEXT`,
-      };
-    case 'semestral':
-      return {
-        periodKey: `MAKE_DATE(EXTRACT(YEAR FROM fecha_inscripcion)::INT, CASE WHEN EXTRACT(MONTH FROM fecha_inscripcion)::INT <= 6 THEN 1 ELSE 7 END, 1)`,
-        label:     `CASE WHEN EXTRACT(MONTH FROM period_key) = 1 THEN '1S' ELSE '2S' END || ' ' || EXTRACT(YEAR FROM period_key)::TEXT`,
-      };
+      return `
+        WITH ${YEAR_BOUNDS_CTE},
+        series AS (
+          SELECT generate_series(year_start, year_end, '3 months'::interval) AS period_key
+          FROM year_bounds
+        ),
+        counts AS (
+          SELECT DATE_TRUNC('quarter', fecha_inscripcion) AS period_key, COUNT(*) AS total
+          FROM v_inscripciones_por_periodo
+          WHERE ${YEAR_DATE_FILTER} ${cursoFilter}
+          GROUP BY DATE_TRUNC('quarter', fecha_inscripcion)
+        )
+        SELECT 'T' || EXTRACT(QUARTER FROM s.period_key)::TEXT
+               || ' ' || EXTRACT(YEAR FROM s.period_key)::TEXT  AS periodo,
+               COALESCE(c.total, 0)                              AS total_inscripciones
+        FROM series s
+        LEFT JOIN counts c ON c.period_key = s.period_key
+        ORDER BY s.period_key`;
+
+    case 'semestral': {
+      const semKey = `MAKE_DATE(
+        EXTRACT(YEAR  FROM fecha_inscripcion)::INT,
+        CASE WHEN EXTRACT(MONTH FROM fecha_inscripcion)::INT <= 6 THEN 1 ELSE 7 END,
+        1)`;
+      return `
+        WITH ${YEAR_BOUNDS_CTE},
+        series AS (
+          SELECT generate_series(year_start, year_end, '6 months'::interval) AS period_key
+          FROM year_bounds
+        ),
+        counts AS (
+          SELECT ${semKey} AS period_key, COUNT(*) AS total
+          FROM v_inscripciones_por_periodo
+          WHERE ${YEAR_DATE_FILTER} ${cursoFilter}
+          GROUP BY ${semKey}
+        )
+        SELECT CASE WHEN EXTRACT(MONTH FROM s.period_key) = 1 THEN '1S' ELSE '2S' END
+               || ' ' || EXTRACT(YEAR FROM s.period_key)::TEXT  AS periodo,
+               COALESCE(c.total, 0)                              AS total_inscripciones
+        FROM series s
+        LEFT JOIN counts c ON c.period_key = s.period_key
+        ORDER BY s.period_key`;
+    }
+
     case 'anual':
-      return {
-        periodKey: `DATE_TRUNC('year', fecha_inscripcion)`,
-        label:     `EXTRACT(YEAR FROM period_key)::TEXT`,
-      };
-    default: // mensual and custom both group by month
-      return {
-        periodKey: `DATE_TRUNC('month', fecha_inscripcion)`,
-        label:     MONTH_LABEL_FROM_KEY,
-      };
+      // Always 1 row — COUNT(*) with no GROUP BY returns 0 when no data
+      return `
+        WITH ${YEAR_BOUNDS_CTE}
+        SELECT EXTRACT(YEAR FROM CURRENT_DATE)::TEXT AS periodo,
+               COUNT(*)                              AS total_inscripciones
+        FROM v_inscripciones_por_periodo
+        WHERE ${YEAR_DATE_FILTER} ${cursoFilter}`;
+
+    default: // mensual — 12 rows, one per month of the current year
+      return `
+        WITH ${YEAR_BOUNDS_CTE},
+        series AS (
+          SELECT generate_series(year_start, year_end, '1 month'::interval) AS period_key
+          FROM year_bounds
+        ),
+        counts AS (
+          SELECT DATE_TRUNC('month', fecha_inscripcion) AS period_key, COUNT(*) AS total
+          FROM v_inscripciones_por_periodo
+          WHERE ${YEAR_DATE_FILTER} ${cursoFilter}
+          GROUP BY DATE_TRUNC('month', fecha_inscripcion)
+        )
+        SELECT ${MONTH_LABEL_SERIES}   AS periodo,
+               COALESCE(c.total, 0)   AS total_inscripciones
+        FROM series s
+        LEFT JOIN counts c ON c.period_key = s.period_key
+        ORDER BY s.period_key`;
   }
 };
 
@@ -71,46 +143,39 @@ export const getInscripcionesPorPeriodo = async ({ agrupacion, fechaInicio, fech
   await ensureView('v_inscripciones_por_periodo');
 
   const isCustom = !agrupacion || agrupacion === 'custom';
+  const values   = [];
+  let sql;
 
-  // For keyword agrupacion, infer date range from the current year
-  let startDate = fechaInicio;
-  let endDate   = fechaFin;
+  if (isCustom) {
+    // Custom: caller provides the exact date range; group by month, no generate_series
+    values.push(fechaInicio, fechaFin);
+    if (cursoId) values.push(cursoId);
+    const cursoFilter = cursoId ? `AND curso_id = $3` : '';
 
-  if (!isCustom) {
-    const year = new Date().getFullYear();
-    startDate = `${year}-01-01`;
-    endDate   = `${year}-12-31`;
+    sql = `
+      WITH base AS (
+        SELECT DATE_TRUNC('month', fecha_inscripcion) AS period_key,
+               COUNT(*)                               AS total_inscripciones
+        FROM v_inscripciones_por_periodo
+        WHERE fecha_inscripcion >= $1 AND fecha_inscripcion <= $2
+        ${cursoFilter}
+        GROUP BY DATE_TRUNC('month', fecha_inscripcion)
+      )
+      SELECT ${MONTH_LABEL_CTE} AS periodo, total_inscripciones
+      FROM base
+      ORDER BY period_key`;
+  } else {
+    // Keyword modes: always scoped to the current year via CURRENT_DATE in SQL
+    if (cursoId) values.push(cursoId);
+    const cursoFilter = cursoId ? `AND curso_id = $1` : '';
+    sql = buildSeriesQuery(agrupacion, cursoFilter);
   }
 
-  const values = [startDate, endDate];
-  let cursoFilter = '';
-
-  if (cursoId) {
-    values.push(cursoId);
-    cursoFilter = `AND curso_id = $${values.length}`;
-  }
-
-  const { periodKey, label } = buildPeriodExpressions(isCustom ? 'mensual' : agrupacion);
-
-  // CTE groups by period_key first; outer query derives the display label from that key.
-  const result = await query(
-    `WITH base AS (
-       SELECT ${periodKey} AS period_key, COUNT(*) AS total_inscripciones
-       FROM v_inscripciones_por_periodo
-       WHERE fecha_inscripcion >= $1 AND fecha_inscripcion <= $2
-       ${cursoFilter}
-       GROUP BY ${periodKey}
-     )
-     SELECT ${label} AS periodo, total_inscripciones
-     FROM base
-     ORDER BY period_key`,
-    values
-  );
-
+  const result = await query(sql, values);
   return result.rows;
 };
 
-export const getIntentosPorModulo = async ({ cursoId, docenteId, fechaInicio, fechaFin } = {}) => {
+export const getIntentosPorModulo = async ({ cursoId, fechaInicio, fechaFin } = {}) => {
   await ensureView('v_intentos_por_modulo');
 
   const conditions = [];
@@ -119,11 +184,6 @@ export const getIntentosPorModulo = async ({ cursoId, docenteId, fechaInicio, fe
   if (cursoId) {
     values.push(cursoId);
     conditions.push(`curso_id = $${values.length}`);
-  }
-
-  if (docenteId) {
-    values.push(docenteId);
-    conditions.push(`docente_id = $${values.length}`);
   }
 
   if (fechaInicio) {
@@ -176,7 +236,7 @@ export const getCursosActivosVsInactivos = async () => {
 };
 
 export const getCertificados = async () => {
-  await ensureView('v_certificados_por_periodo');
-  const result = await query('SELECT * FROM v_certificados_por_periodo');
+  await ensureView('v_certificados_emitidos_vs_descargados');
+  const result = await query('SELECT * FROM v_certificados_emitidos_vs_descargados');
   return result.rows[0] ?? null;
 };

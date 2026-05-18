@@ -1045,40 +1045,19 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Cursos más populares por inscritos',
-        description: `Retorna los cursos ordenados por número de inscritos, consultando la vista \`v_cursos_populares\`.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        description: `Retorna los cursos ordenados de mayor a menor número de inscritos (solo cursos no eliminados).\n\n**Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
           {
             name: 'curso_id', in: 'query', required: false,
             schema: { type: 'string', format: 'uuid', example: COURSE_ID },
-            description: 'Filtra por un curso específico.',
+            description: 'Filtra la respuesta a un único curso.',
           },
         ],
         responses: {
-          200: {
-            description: 'Lista de cursos con total de inscritos.',
-            content: {
-              'application/json': {
-                example: {
-                  success: true,
-                  data: [
-                    { curso_id: COURSE_ID, curso_titulo: 'Matemáticas', total_inscritos: 87 },
-                    { curso_id: COURSE_ID, curso_titulo: 'Estadística',  total_inscritos: 64 },
-                  ],
-                  meta: { total: 2, filtros_aplicados: { curso_id: null } },
-                },
-              },
-            },
-          },
+          200: { description: 'Lista de cursos con total de inscritos.' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_cursos_populares" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },
@@ -1087,81 +1066,44 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Inscripciones por período',
-        description: `Agrupa inscripciones por el período indicado, consultando la vista \`v_inscripciones_por_periodo\`.
+        description: `Agrupa inscripciones por el período indicado. Para modos de palabra clave el año se toma automáticamente del año actual y **siempre** se devuelven todas las filas aunque estén en 0.
 
 **Modos disponibles:**
-- \`agrupacion=mensual\` → agrupa por mes, año actual automático
-- \`agrupacion=trimestral\` → agrupa por trimestre (T1, T2, T3, T4), año actual
-- \`agrupacion=semestral\` → agrupa por semestre (1S, 2S), año actual
-- \`agrupacion=anual\` → agrupa por año, todos los datos
-- Sin \`agrupacion\` o \`agrupacion=custom\` → requiere \`fecha_inicio\` y \`fecha_fin\` exactas
+- \`mensual\` → 12 filas (Enero – Diciembre del año actual)
+- \`trimestral\` → 4 filas (T1 – T4 del año actual)
+- \`semestral\` → 2 filas (1S – 2S del año actual)
+- \`anual\` → 1 fila (total del año actual)
+- \`custom\` → requiere \`fecha_inicio\` y \`fecha_fin\`, agrupa por mes dentro del rango
 
 **Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
           {
             name: 'agrupacion', in: 'query', required: false,
             schema: { type: 'string', enum: ['mensual', 'trimestral', 'semestral', 'anual', 'custom'], example: 'mensual' },
-            description: 'Tipo de agrupación. Si se omite o es "custom", se requieren fecha_inicio y fecha_fin.',
+            description: 'Tipo de agrupación. Si se omite o es "custom" se requieren fecha_inicio y fecha_fin.',
           },
           {
             name: 'fecha_inicio', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-01-01' },
-            description: 'Requerido solo cuando agrupacion=custom.',
+            description: 'Obligatorio cuando agrupacion=custom. Formato YYYY-MM-DD.',
           },
           {
             name: 'fecha_fin', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-06-30' },
-            description: 'Requerido solo cuando agrupacion=custom.',
+            description: 'Obligatorio cuando agrupacion=custom. Formato YYYY-MM-DD.',
           },
           {
             name: 'curso_id', in: 'query', required: false,
             schema: { type: 'string', format: 'uuid', example: COURSE_ID },
-            description: 'Filtra por un curso específico.',
+            description: 'Filtra las inscripciones a un único curso.',
           },
         ],
         responses: {
-          200: {
-            description: 'Inscripciones agrupadas por período.',
-            content: {
-              'application/json': {
-                examples: {
-                  mensual: {
-                    summary: 'agrupacion=mensual',
-                    value: {
-                      success: true,
-                      data: [
-                        { periodo: 'Enero 2026', total_inscripciones: '34' },
-                        { periodo: 'Mayo 2026',  total_inscripciones: '51' },
-                      ],
-                      meta: { total: 2, filtros_aplicados: { agrupacion: 'mensual', fecha_inicio: null, fecha_fin: null, curso_id: null } },
-                    },
-                  },
-                  trimestral: {
-                    summary: 'agrupacion=trimestral',
-                    value: {
-                      success: true,
-                      data: [
-                        { periodo: 'T1 2026', total_inscripciones: '80' },
-                        { periodo: 'T2 2026', total_inscripciones: '65' },
-                      ],
-                      meta: { total: 2, filtros_aplicados: { agrupacion: 'trimestral', fecha_inicio: null, fecha_fin: null, curso_id: null } },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          200: { description: 'Inscripciones agrupadas por período.' },
           400: { $ref: '#/components/responses/BadRequest' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_inscripciones_por_periodo" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },
@@ -1170,50 +1112,29 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Promedio de intentos para aprobar por módulo',
-        description: `Muestra el promedio de intentos que los estudiantes necesitan para aprobar cada módulo, desde la vista \`v_intentos_por_modulo\`.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        description: `Muestra el promedio de intentos que los estudiantes necesitan para aprobar cada módulo.\n\n**Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
           {
             name: 'curso_id', in: 'query', required: false,
             schema: { type: 'string', format: 'uuid', example: COURSE_ID },
-            description: 'Filtra por curso.',
-          },
-          {
-            name: 'docente_id', in: 'query', required: false,
-            schema: { type: 'string', format: 'uuid', example: DOCENTE_ID },
-            description: 'Filtra por docente.',
+            description: 'Filtra los módulos pertenecientes a ese curso.',
           },
           {
             name: 'fecha_inicio', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-01-01' },
+            description: 'Filtra módulos cuyo último intento sea igual o posterior a esta fecha. Formato YYYY-MM-DD.',
           },
           {
             name: 'fecha_fin', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-06-30' },
+            description: 'Filtra módulos cuyo último intento sea igual o anterior a esta fecha. Formato YYYY-MM-DD.',
           },
         ],
         responses: {
-          200: {
-            description: 'Promedio de intentos por módulo.',
-            content: {
-              'application/json': {
-                example: {
-                  success: true,
-                  data: [{ modulo_titulo: 'Módulo 3', promedio_intentos: 2.3, total_estudiantes: 45 }],
-                  meta: { total: 1, filtros_aplicados: { curso_id: null, docente_id: null, fecha_inicio: null, fecha_fin: null } },
-                },
-              },
-            },
-          },
+          200: { description: 'Promedio de intentos por módulo.' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_intentos_por_modulo" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },
@@ -1222,54 +1143,29 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Tasa de completitud por curso',
-        description: `Muestra cuántos estudiantes completaron y no completaron cada curso, desde la vista \`v_tasa_aprobacion\`.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        description: `Muestra cuántos estudiantes completaron y no completaron cada curso, junto con el porcentaje de completitud.\n\n**Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
           {
             name: 'curso_id', in: 'query', required: false,
             schema: { type: 'string', format: 'uuid', example: COURSE_ID },
-          },
-          {
-            name: 'modulo_id', in: 'query', required: false,
-            schema: { type: 'string', format: 'uuid' },
+            description: 'Filtra la respuesta a un único curso.',
           },
           {
             name: 'fecha_inicio', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-01-01' },
+            description: 'Filtra cursos cuya inscripción más reciente sea igual o posterior a esta fecha. Formato YYYY-MM-DD.',
           },
           {
             name: 'fecha_fin', in: 'query', required: false,
             schema: { type: 'string', format: 'date', example: '2026-06-30' },
+            description: 'Filtra cursos cuya inscripción más reciente sea igual o anterior a esta fecha. Formato YYYY-MM-DD.',
           },
         ],
         responses: {
-          200: {
-            description: 'Tasa de completitud por curso.',
-            content: {
-              'application/json': {
-                example: {
-                  success: true,
-                  data: [{
-                    curso_titulo: 'Cálculo diferencial',
-                    total_inscritos: 120,
-                    completados: 72,
-                    no_completados: 48,
-                    porcentaje_completitud: 60.0,
-                  }],
-                  meta: { total: 1, filtros_aplicados: { curso_id: null, modulo_id: null, fecha_inicio: null, fecha_fin: null } },
-                },
-              },
-            },
-          },
+          200: { description: 'Tasa de completitud por curso.' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_tasa_aprobacion" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },
@@ -1278,30 +1174,12 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Cursos activos vs inactivos',
-        description: `Comparativo global de cursos activos e inactivos desde la vista \`v_cursos_activos_inactivos\`.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        description: `Resumen global: total de cursos no eliminados, cuántos están activos y cuántos inactivos.\n\n**Roles permitidos:** Admin, SuperAdmin`,
         responses: {
-          200: {
-            description: 'Comparativo de cursos activos vs inactivos.',
-            content: {
-              'application/json': {
-                example: {
-                  success: true,
-                  data: { total_cursos: 45, activos: 38, inactivos: 7 },
-                  meta: { filtros_aplicados: {} },
-                },
-              },
-            },
-          },
+          200: { description: 'Comparativo de cursos activos vs inactivos.' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_cursos_activos_inactivos" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },
@@ -1310,30 +1188,12 @@ El sistema:
       get: {
         tags: ['Reportes'],
         summary: 'Certificados emitidos vs descargados',
-        description: `Comparativo global de certificados emitidos y descargados desde la vista \`v_certificados_por_periodo\`.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        description: `Resumen global: total de certificados emitidos, cuántos fueron descargados y el porcentaje de descarga.\n\n**Roles permitidos:** Admin, SuperAdmin`,
         responses: {
-          200: {
-            description: 'Comparativo de certificados emitidos vs descargados.',
-            content: {
-              'application/json': {
-                example: {
-                  success: true,
-                  data: { total_emitidos: 150, total_descargados: 95, porcentaje_descarga: 63.3 },
-                  meta: { filtros_aplicados: {} },
-                },
-              },
-            },
-          },
+          200: { description: 'Comparativo de certificados emitidos vs descargados.' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
-          503: {
-            description: 'La vista de BD aún no está disponible.',
-            content: {
-              'application/json': {
-                example: { success: false, message: 'Report view "v_certificados_por_periodo" is not available yet.' },
-              },
-            },
-          },
+          503: { description: 'Vista de BD no disponible.' },
         },
       },
     },

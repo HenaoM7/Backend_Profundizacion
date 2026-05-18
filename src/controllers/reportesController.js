@@ -60,10 +60,9 @@ export const getInscripcionesPorPeriodo = async (req, res, next) => {
 
 export const getIntentosPorModulo = async (req, res, next) => {
   try {
-    const { curso_id, docente_id, fecha_inicio, fecha_fin } = req.query;
+    const { curso_id, fecha_inicio, fecha_fin } = req.query;
     const data = await reportesService.getIntentosPorModulo({
       cursoId: curso_id,
-      docenteId: docente_id,
       fechaInicio: fecha_inicio,
       fechaFin: fecha_fin,
     });
@@ -75,7 +74,6 @@ export const getIntentosPorModulo = async (req, res, next) => {
         total: data.length,
         filtros_aplicados: {
           curso_id: curso_id ?? null,
-          docente_id: docente_id ?? null,
           fecha_inicio: fecha_inicio ?? null,
           fecha_fin: fecha_fin ?? null,
         },
