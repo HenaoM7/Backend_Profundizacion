@@ -1099,7 +1099,7 @@ El sistema:
         summary: 'Listar archivos de una carpeta',
         description: `Lista los archivos almacenados localmente en el servidor.
  
-**Carpetas disponibles:** \`documentos\`, \`imagenes\`, \`reportes\`
+**Carpetas disponibles:** \`documentos\`, \`imagenes\`
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
         parameters: [
