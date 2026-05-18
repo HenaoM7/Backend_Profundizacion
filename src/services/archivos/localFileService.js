@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const UPLOADS_DIR = path.join(__dirname, "../../uploads");
 
 // Subcarpetas disponibles
-const CARPETAS = ["documentos", "imagenes", "reportes"];
+const CARPETAS = ["documentos", "imagenes"];
 
 class LocalFileService {
     constructor() {
@@ -40,7 +40,6 @@ class LocalFileService {
         return rutaCarpeta;
     }
 
-    // ── Subir archivo ──────────────────────────────────────
     async subirArchivo({ nombre, mimeType, buffer, carpeta = "documentos" }) {
         try {
             const rutaCarpeta = this._resolverRuta(carpeta);
@@ -67,7 +66,6 @@ class LocalFileService {
         }
     }
 
-    // ── Descargar archivo ──────────────────────────────────
     async descargarArchivo(fileId, res) {
         try {
             const rutaArchivo = path.join(UPLOADS_DIR, fileId);
@@ -102,7 +100,6 @@ class LocalFileService {
         }
     }
 
-    // ── Eliminar archivo ───────────────────────────────────
     async eliminarArchivo(fileId) {
         try {
             const rutaArchivo = path.join(UPLOADS_DIR, fileId);
@@ -123,7 +120,6 @@ class LocalFileService {
         }
     }
 
-    // ── Listar archivos de una carpeta ─────────────────────
     async listarArchivos(carpeta = "documentos") {
         try {
             const rutaCarpeta = this._resolverRuta(carpeta);
@@ -157,8 +153,6 @@ class LocalFileService {
             throw error;
         }
     }
-
-    // ── Helpers ────────────────────────────────────────────
 
     // Sanitiza el nombre del archivo para evitar caracteres peligrosos
     _nombreSeguro(nombre) {
