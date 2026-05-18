@@ -67,6 +67,7 @@ Authorization: Bearer token-estudiante-001
     { name: 'Certificados', description: 'Generación, consulta y descarga de certificados de finalización' },
     { name: 'Evaluaciones', description: 'Envío de respuestas con corrección automática y creación de nota' },
     { name: 'Teacher', description: 'Orquestación Vista Docente (Equipo 6)' },
+    { name: 'Admin Dashboard', description: 'Reportes del panel administrativo' },
   ],
   components: {
     securitySchemes: {
@@ -354,7 +355,7 @@ Authorization: Bearer token-estudiante-001
             description: 'Servicio operativo.',
             content: {
               'application/json': {
-                example: { status: 'UP', service: 'PlataformaIUSH-Backend', version: '1.0.0' },
+                example: {status: 'UP', service: 'PlataformaIUSH-Backend', version: '1.0.0'},
               },
             },
           },
@@ -376,15 +377,15 @@ El campo **numeroIntento** se calcula automáticamente contando los intentos pre
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/GradeRequest' },
+              schema: {$ref: '#/components/schemas/GradeRequest'},
               examples: {
                 ejemplo1: {
                   summary: 'Nota 88 en módulo',
-                  value: { userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 88 },
+                  value: {userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 88},
                 },
                 ejemplo2: {
                   summary: 'Nota 72 con evaluación',
-                  value: { userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 72, evaluacionId: 1 },
+                  value: {userId: STUDENT_ID, courseId: COURSE_ID, moduleId: MODULE_ID, score: 72, evaluacionId: 1},
                 },
               },
             },
@@ -393,11 +394,11 @@ El campo **numeroIntento** se calcula automáticamente contando los intentos pre
         responses: {
           201: {
             description: 'Nota registrada correctamente.',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGrade' } } },
+            content: {'application/json': {schema: {$ref: '#/components/schemas/SuccessGrade'}}},
           },
-          400: { $ref: '#/components/responses/BadRequest' },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
+          400: {$ref: '#/components/responses/BadRequest'},
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
         },
       },
     },
@@ -414,18 +415,18 @@ El campo **numeroIntento** se calcula automáticamente contando los intentos pre
         parameters: [
           {
             name: 'userId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del estudiante.',
           },
         ],
         responses: {
           200: {
             description: 'Lista de notas.',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } },
+            content: {'application/json': {schema: {$ref: '#/components/schemas/SuccessGradeList'}}},
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -440,18 +441,18 @@ El campo **numeroIntento** se calcula automáticamente contando los intentos pre
         parameters: [
           {
             name: 'courseId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
         ],
         responses: {
           200: {
             description: 'Lista de notas.',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessGradeList' } } },
+            content: {'application/json': {schema: {$ref: '#/components/schemas/SuccessGradeList'}}},
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -470,12 +471,12 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
         parameters: [
           {
             name: 'courseId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
           {
             name: 'userId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del estudiante.',
           },
         ],
@@ -487,27 +488,27 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean', example: true },
-                    data:    { $ref: '#/components/schemas/AverageResponse' },
+                    success: {type: 'boolean', example: true},
+                    data: {$ref: '#/components/schemas/AverageResponse'},
                   },
                 },
                 example: {
                   success: true,
                   data: {
-                    userId:       STUDENT_ID,
-                    courseId:     COURSE_ID,
-                    average:      81.5,
+                    userId: STUDENT_ID,
+                    courseId: COURSE_ID,
+                    average: 81.5,
                     totalModules: 2,
-                    minPassing:   60,
-                    isPassing:    true,
+                    minPassing: 60,
+                    isPassing: true,
                   },
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -522,7 +523,7 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
         parameters: [
           {
             name: 'courseId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
         ],
@@ -534,32 +535,40 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean', example: true },
-                    data:    { $ref: '#/components/schemas/EstadisticasCurso' },
+                    success: {type: 'boolean', example: true},
+                    data: {$ref: '#/components/schemas/EstadisticasCurso'},
                   },
                 },
                 example: {
                   success: true,
                   data: {
-                    courseId:          COURSE_ID,
+                    courseId: COURSE_ID,
                     total_estudiantes: 1,
-                    promedio_general:  77.07,
-                    total_aprobados:   12,
-                    total_reprobados:  2,
-                    nota_maxima:       100,
-                    nota_minima:       45,
+                    promedio_general: 77.07,
+                    total_aprobados: 12,
+                    total_reprobados: 2,
+                    nota_maxima: 100,
+                    nota_minima: 45,
                     promedio_intentos: 3,
                     por_modulo: [
-                      { id_modulo: MODULE_ID, total_estudiantes: 1, promedio: 73.5, nota_maxima: 100, nota_minima: 45, promedio_intentos: 4.5, max_intentos: 8 },
+                      {
+                        id_modulo: MODULE_ID,
+                        total_estudiantes: 1,
+                        promedio: 73.5,
+                        nota_maxima: 100,
+                        nota_minima: 45,
+                        promedio_intentos: 4.5,
+                        max_intentos: 8
+                      },
                     ],
                   },
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -583,11 +592,11 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
         parameters: [
           {
             name: 'id_contenido', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            schema: {type: 'string', format: 'uuid', example: CONTENT_ID},
             description: 'UUID del contenido a completar.',
           },
         ],
-        requestBody: { required: false, content: {} },
+        requestBody: {required: false, content: {}},
         responses: {
           200: {
             description: 'Progreso actualizado. Si el curso se completó al 100%, incluye nota y certificado.',
@@ -596,9 +605,9 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean', example: true },
-                    message: { type: 'string',  example: '¡Curso completado! Certificado generado automáticamente.' },
-                    data:    { $ref: '#/components/schemas/CompletarContenidoResponse' },
+                    success: {type: 'boolean', example: true},
+                    message: {type: 'string', example: '¡Curso completado! Certificado generado automáticamente.'},
+                    data: {$ref: '#/components/schemas/CompletarContenidoResponse'},
                   },
                 },
                 examples: {
@@ -629,8 +638,8 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
                         totalContenidos: 2,
                         completado: true,
                         aprobado: true,
-                        nota: { id: 'uuid', score: 100, numeroIntento: 1 },
-                        certificado: { id: CERT_ID, url: 'https://certs.eduplatform.com/verify/...' },
+                        nota: {id: 'uuid', score: 100, numeroIntento: 1},
+                        certificado: {id: CERT_ID, url: 'https://certs.eduplatform.com/verify/...'},
                       },
                     },
                   },
@@ -642,19 +651,19 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
             description: 'Contenido inactivo.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                example: { success: false, message: 'El contenido no está activo.' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
+                example: {success: false, message: 'El contenido no está activo.'},
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
           404: {
             description: 'Contenido no encontrado.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                example: { success: false, message: 'Contenido no encontrado.' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
+                example: {success: false, message: 'Contenido no encontrado.'},
               },
             },
           },
@@ -662,8 +671,8 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
             description: 'El estudiante ya completó este contenido.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                example: { success: false, message: 'El estudiante ya completó este contenido.' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
+                example: {success: false, message: 'El estudiante ya completó este contenido.'},
               },
             },
           },
@@ -687,24 +696,24 @@ Indica si el estudiante supera la nota mínima aprobatoria (60).
                   success: true,
                   data: [
                     {
-                      id_progreso_curso:       'c7132421-c558-46b1-9edc-871643859181',
-                      id_usuario:              STUDENT_ID,
-                      id_curso:                COURSE_ID,
-                      porcentaje:              '100.00',
-                      contenidos_completados:  2,
-                      total_contenidos:        2,
-                      completado:              true,
-                      aprobado:                true,
-                      fecha_inicio:            '2026-05-08T05:56:33.303Z',
-                      fecha_completado:        '2026-05-08T05:56:36.067Z',
-                      titulo_curso:            'React 2.0',
+                      id_progreso_curso: 'c7132421-c558-46b1-9edc-871643859181',
+                      id_usuario: STUDENT_ID,
+                      id_curso: COURSE_ID,
+                      porcentaje: '100.00',
+                      contenidos_completados: 2,
+                      total_contenidos: 2,
+                      completado: true,
+                      aprobado: true,
+                      fecha_inicio: '2026-05-08T05:56:33.303Z',
+                      fecha_completado: '2026-05-08T05:56:36.067Z',
+                      titulo_curso: 'React 2.0',
                     },
                   ],
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
+          401: {$ref: '#/components/responses/Unauthorized'},
         },
       },
     },
@@ -723,12 +732,12 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
         parameters: [
           {
             name: 'id_curso', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
           {
             name: 'userId', in: 'query', required: false,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del estudiante a consultar (solo Admin/Docente).',
           },
         ],
@@ -740,30 +749,30 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean', example: true },
-                    data:    { $ref: '#/components/schemas/ProgresoCurso' },
+                    success: {type: 'boolean', example: true},
+                    data: {$ref: '#/components/schemas/ProgresoCurso'},
                   },
                 },
                 example: {
                   success: true,
                   data: {
-                    id:                    'c7132421-c558-46b1-9edc-871643859181',
-                    idUsuario:             STUDENT_ID,
-                    idCurso:               COURSE_ID,
-                    porcentaje:            100,
+                    id: 'c7132421-c558-46b1-9edc-871643859181',
+                    idUsuario: STUDENT_ID,
+                    idCurso: COURSE_ID,
+                    porcentaje: 100,
                     contenidosCompletados: 2,
-                    totalContenidos:       2,
-                    completado:            true,
-                    aprobado:              true,
-                    fechaInicio:           '2026-05-08T05:56:33.303Z',
-                    fechaCompletado:       '2026-05-08T05:56:36.067Z',
+                    totalContenidos: 2,
+                    completado: true,
+                    aprobado: true,
+                    fechaInicio: '2026-05-08T05:56:33.303Z',
+                    fechaCompletado: '2026-05-08T05:56:36.067Z',
                   },
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
         },
       },
     },
@@ -780,7 +789,7 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
         parameters: [
           {
             name: 'id_curso', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
         ],
@@ -793,25 +802,25 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
                   success: true,
                   data: [
                     {
-                      id_progreso_curso:      'c7132421-c558-46b1-9edc-871643859181',
-                      id_usuario:             STUDENT_ID,
-                      id_curso:               COURSE_ID,
-                      porcentaje:             '100.00',
+                      id_progreso_curso: 'c7132421-c558-46b1-9edc-871643859181',
+                      id_usuario: STUDENT_ID,
+                      id_curso: COURSE_ID,
+                      porcentaje: '100.00',
                       contenidos_completados: 2,
-                      total_contenidos:       2,
-                      completado:             true,
-                      aprobado:               true,
-                      fecha_inicio:           '2026-05-08T05:56:33.303Z',
-                      fecha_completado:       '2026-05-08T05:56:36.067Z',
-                      nombre_estudiante:      null,
+                      total_contenidos: 2,
+                      completado: true,
+                      aprobado: true,
+                      fecha_inicio: '2026-05-08T05:56:33.303Z',
+                      fecha_completado: '2026-05-08T05:56:36.067Z',
+                      nombre_estudiante: null,
                     },
                   ],
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
         },
       },
     },
@@ -835,38 +844,41 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/CertificateRequest' },
-              example: { userId: STUDENT_ID, courseId: COURSE_ID },
+              schema: {$ref: '#/components/schemas/CertificateRequest'},
+              example: {userId: STUDENT_ID, courseId: COURSE_ID},
             },
           },
         },
         responses: {
           201: {
             description: 'Certificado generado.',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificate' } } },
+            content: {'application/json': {schema: {$ref: '#/components/schemas/SuccessCertificate'}}},
           },
-          400: { $ref: '#/components/responses/BadRequest' },
-          401: { $ref: '#/components/responses/Unauthorized' },
+          400: {$ref: '#/components/responses/BadRequest'},
+          401: {$ref: '#/components/responses/Unauthorized'},
           403: {
             description: 'Sin permiso de rol o el curso no está completado al 100 %.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
                 examples: {
                   rolForbidden: {
                     summary: 'Rol sin permiso',
-                    value: { success: false, message: 'Acceso denegado. Rol insuficiente.' },
+                    value: {success: false, message: 'Acceso denegado. Rol insuficiente.'},
                   },
                   noCompletado: {
                     summary: 'Progreso menor al 100 %',
-                    value: { success: false, message: 'El estudiante debe completar el 100% del curso para recibir el certificado.' },
+                    value: {
+                      success: false,
+                      message: 'El estudiante debe completar el 100% del curso para recibir el certificado.'
+                    },
                   },
                 },
               },
             },
           },
-          404: { $ref: '#/components/responses/NotFound' },
-          409: { $ref: '#/components/responses/Conflict' },
+          404: {$ref: '#/components/responses/NotFound'},
+          409: {$ref: '#/components/responses/Conflict'},
         },
       },
     },
@@ -881,18 +893,18 @@ Si el estudiante aún no tiene actividad en el curso, retorna un objeto con porc
         parameters: [
           {
             name: 'userId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del usuario.',
           },
         ],
         responses: {
           200: {
             description: 'Lista de certificados.',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessCertificateList' } } },
+            content: {'application/json': {schema: {$ref: '#/components/schemas/SuccessCertificateList'}}},
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -909,12 +921,12 @@ El campo \`descargadoEn\` se registra solo la primera vez.
         parameters: [
           {
             name: 'userId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del usuario.',
           },
           {
             name: 'courseId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            schema: {type: 'string', format: 'uuid', example: COURSE_ID},
             description: 'UUID del curso.',
           },
         ],
@@ -926,29 +938,29 @@ El campo \`descargadoEn\` se registra solo la primera vez.
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean', example: true },
-                    data:    { $ref: '#/components/schemas/DownloadResponse' },
+                    success: {type: 'boolean', example: true},
+                    data: {$ref: '#/components/schemas/DownloadResponse'},
                   },
                 },
                 example: {
                   success: true,
                   data: {
-                    message:          'Descarga lista. Accede a la URL para obtener el PDF.',
-                    downloadUrl:      'https://certs.eduplatform.com/verify/4fd91d4a-274b-46d7-85e8-9f7329f657ea',
-                    imagenUrl:        null,
+                    message: 'Descarga lista. Accede a la URL para obtener el PDF.',
+                    downloadUrl: 'https://certs.eduplatform.com/verify/4fd91d4a-274b-46d7-85e8-9f7329f657ea',
+                    imagenUrl: null,
                     nombreEstudiante: null,
-                    nombreCurso:      null,
-                    descargado:       true,
-                    descargadoEn:     '2026-05-09T12:53:55.988Z',
-                    certificate:      { id: CERT_ID, userId: STUDENT_ID, courseId: COURSE_ID },
+                    nombreCurso: null,
+                    descargado: true,
+                    descargadoEn: '2026-05-09T12:53:55.988Z',
+                    certificate: {id: CERT_ID, userId: STUDENT_ID, courseId: COURSE_ID},
                   },
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
         },
       },
     },
@@ -970,7 +982,7 @@ El sistema:
         parameters: [
           {
             name: 'id_contenido', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            schema: {type: 'string', format: 'uuid', example: CONTENT_ID},
             description: 'UUID del contenido que contiene la evaluación.',
           },
         ],
@@ -978,12 +990,12 @@ El sistema:
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/EvaluacionRespuestaRequest' },
+              schema: {$ref: '#/components/schemas/EvaluacionRespuestaRequest'},
               example: {
                 respuestas: [
-                  { idEvaluacion: 1, idOpcion: 2 },
-                  { idEvaluacion: 2, idOpcion: 5 },
-                  { idEvaluacion: 3, idOpcion: 7 },
+                  {idEvaluacion: 1, idOpcion: 2},
+                  {idEvaluacion: 2, idOpcion: 5},
+                  {idEvaluacion: 3, idOpcion: 7},
                 ],
               },
             },
@@ -1005,27 +1017,27 @@ El sistema:
                       score: 75,
                       numeroIntento: 1,
                     },
-                    calificacion:    75,
+                    calificacion: 75,
                     puntajeObtenido: 15,
-                    puntajeTotal:    20,
+                    puntajeTotal: 20,
                     detalle: [
-                      { idEvaluacion: 1, enunciado: '¿Qué es un componente en React?', esCorrecta: true,  puntaje: 10 },
-                      { idEvaluacion: 2, enunciado: '¿Qué hace useState?',             esCorrecta: false, puntaje: 10 },
+                      {idEvaluacion: 1, enunciado: '¿Qué es un componente en React?', esCorrecta: true, puntaje: 10},
+                      {idEvaluacion: 2, enunciado: '¿Qué hace useState?', esCorrecta: false, puntaje: 10},
                     ],
                   },
                 },
               },
             },
           },
-          400: { $ref: '#/components/responses/BadRequest' },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
+          400: {$ref: '#/components/responses/BadRequest'},
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
           404: {
             description: 'Contenido o evaluación no encontrado.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                example: { success: false, message: 'No se encontraron preguntas para este contenido.' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
+                example: {success: false, message: 'No se encontraron preguntas para este contenido.'},
               },
             },
           },
@@ -1033,8 +1045,8 @@ El sistema:
             description: 'El estudiante ya respondió esta evaluación.',
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-                example: { success: false, message: 'Ya respondiste la evaluación de este contenido.' },
+                schema: {$ref: '#/components/schemas/ErrorResponse'},
+                example: {success: false, message: 'Ya respondiste la evaluación de este contenido.'},
               },
             },
           },
@@ -1052,12 +1064,12 @@ El sistema:
         parameters: [
           {
             name: 'id_contenido', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            schema: {type: 'string', format: 'uuid', example: CONTENT_ID},
             description: 'UUID del contenido.',
           },
           {
             name: 'userId', in: 'path', required: true,
-            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            schema: {type: 'string', format: 'uuid', example: STUDENT_ID},
             description: 'UUID del estudiante.',
           },
         ],
@@ -1069,19 +1081,275 @@ El sistema:
                 example: {
                   success: true,
                   data: {
-                    userId:          STUDENT_ID,
-                    idContenido:     CONTENT_ID,
-                    calificacion:    75,
+                    userId: STUDENT_ID,
+                    idContenido: CONTENT_ID,
+                    calificacion: 75,
                     puntajeObtenido: 15,
-                    puntajeTotal:    20,
+                    puntajeTotal: 20,
                   },
                 },
               },
             },
           },
+          401: {$ref: '#/components/responses/Unauthorized'},
+          403: {$ref: '#/components/responses/Forbidden'},
+          404: {$ref: '#/components/responses/NotFound'},
+        },
+      },
+    },
+    '/api/documentos': {
+      get: {
+        tags: ['Documentos'],
+        summary: 'Listar archivos de una carpeta',
+        description: `Lista los archivos almacenados localmente en el servidor.
+ 
+**Carpetas disponibles:** \`documentos\`, \`imagenes\`
+ 
+**Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'carpeta',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string',
+              enum: ['documentos', 'imagenes', 'reportes'],
+              default: 'documentos',
+            },
+            description: 'Carpeta a listar (por defecto: documentos).',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Lista de archivos.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: [
+                    {
+                      id: 'documentos/1747123456789_mi_archivo.pdf',
+                      name: '1747123456789_mi_archivo.pdf',
+                      mimeType: 'application/pdf',
+                      size: 204800,
+                      carpeta: 'documentos',
+                      createdTime: '2026-05-16T10:00:00.000Z',
+                      modifiedTime: '2026-05-16T10:00:00.000Z',
+                    },
+                  ],
+                  total: 1,
+                },
+              },
+            },
+          },
+          500: {
+            description: 'Error al listar archivos.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Error al leer la carpeta'},
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Documentos'],
+        summary: 'Subir un archivo',
+        description: `Sube un archivo al servidor local en la carpeta indicada.
+ 
+El archivo se envía como \`multipart/form-data\` con el campo \`archivo\`.
+ 
+El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp para evitar colisiones.
+ 
+**Tamaño máximo:** 50MB
+ 
+**Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['archivo'],
+                properties: {
+                  archivo: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'Archivo a subir (máx. 50MB)',
+                  },
+                  carpeta: {
+                    type: 'string',
+                    enum: ['documentos', 'imagenes', 'reportes'],
+                    default: 'documentos',
+                    description: 'Carpeta destino (opcional, por defecto: documentos)',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Archivo subido exitosamente.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    id: 'documentos/1747123456789_mi_archivo.pdf',
+                    name: '1747123456789_mi_archivo.pdf',
+                    mimeType: 'application/pdf',
+                    size: 204800,
+                    carpeta: 'documentos',
+                    createdTime: '2026-05-16T10:00:00.000Z',
+                    modifiedTime: '2026-05-16T10:00:00.000Z',
+                    path: '/ruta/absoluta/uploads/documentos/1747123456789_mi_archivo.pdf',
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: 'No se envió archivo.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'No se envió ningún archivo'},
+              },
+            },
+          },
+          500: {
+            description: 'Error al guardar el archivo.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Error al guardar el archivo'},
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/api/documentos/{id}/descargar': {
+      get: {
+        tags: ['Documentos'],
+        summary: 'Descargar un archivo',
+        description: `Descarga un archivo del servidor local.
+ 
+El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \`documentos/1747123456789_mi_archivo.pdf\`
+ 
+> **Nota:** en Swagger UI usa el botón "Try it out" y escribe el id sin codificar. El navegador lo codificará automáticamente.
+ 
+**Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: 'documentos/1747123456789_mi_archivo.pdf',
+            },
+            description: 'ID del archivo (ruta relativa dentro de uploads/).',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Archivo descargado correctamente.',
+            content: {
+              'application/octet-stream': {
+                schema: {type: 'string', format: 'binary'},
+              },
+            },
+          },
+          404: {
+            description: 'Archivo no encontrado.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Archivo no encontrado'},
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/api/documentos/{id}': {
+      delete: {
+        tags: ['Documentos'],
+        summary: 'Eliminar un archivo',
+        description: `Elimina un archivo del servidor local.
+ 
+El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \`documentos/1747123456789_mi_archivo.pdf\`
+ 
+**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              example: 'documentos/1747123456789_mi_archivo.pdf',
+            },
+            description: 'ID del archivo a eliminar (ruta relativa dentro de uploads/).',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Archivo eliminado correctamente.',
+            content: {
+              'application/json': {
+                example: {success: true, mensaje: 'Archivo eliminado correctamente'},
+              },
+            },
+          },
+          404: {
+            description: 'Archivo no encontrado.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Archivo no encontrado'},
+              },
+            },
+          },
+          403: {
+            description: 'Ruta no permitida.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Ruta no permitida'},
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ── Admin Dashboard ───────────────────────────────────────────────────────
+    '/api/admin/dashboard/usuarios-total': {
+      get: {
+        tags: ['Admin Dashboard'],
+        summary: 'Total de usuarios creados por el admin autenticado',
+        security: [{ BearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Total de usuarios registrados',
+            content: {
+              'application/json': {
+                example: {
+                  ok: true,
+                  data: { totalUsuarios: 12 },
+                },
+              },
+            },
+          },
           401: { $ref: '#/components/responses/Unauthorized' },
-          403: { $ref: '#/components/responses/Forbidden' },
-          404: { $ref: '#/components/responses/NotFound' },
+          500: {
+            description: 'Error interno del servidor',
+            content: {
+              'application/json': {
+                example: { ok: false, message: 'Error interno del servidor' },
+              },
+            },
+          },
         },
       },
     },
@@ -1094,7 +1362,8 @@ const swaggerSpec = swaggerJsdoc({
     './src/routes/teacher.routes.js',
     './src/routes/curso.routes.js',
     './src/routes/modulo.routes.js',
-    './src/routes/contenido.routes.js'
+    './src/routes/contenido.routes.js',
+    './src/routes/adminDashboardRoutes.js'
   ],
 });
 export default swaggerSpec;
