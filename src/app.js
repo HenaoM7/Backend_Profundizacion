@@ -13,7 +13,11 @@ import gradeRoutes from './routes/gradeRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import evaluacionRoutes from './routes/evaluacionRoutes.js';
 import progresoRoutes from './routes/progresoRoutes.js';
+import cursoRoutes     from './routes/curso.routes.js';
+import moduloRoutes    from './routes/modulo.routes.js';
+import contenidoRoutes from './routes/contenido.routes.js';
 import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
+
 
 const app = express();
 
@@ -44,6 +48,9 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/institucion', institucionRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/cursos', cursoRoutes);
+app.use('/api/cursos/:cursoId/modulos', moduloRoutes);
+app.use('/api/modulos/:moduloId/contenidos', contenidoRoutes);
 app.use('/grades', gradeRoutes);
 app.use('/certificates', certificateRoutes);
 app.use('/evaluaciones', evaluacionRoutes);
@@ -53,6 +60,7 @@ app.get('/health', (_req, res) =>
     res.json({ status: 'UP', service: 'PlataformaIUSH-Backend', version: '1.0.0' })
 );
 app.use('/api/admin/dashboard', adminDashboardRoutes);
+
 
 app.use((_req, res) =>
     res.status(404).json({ success: false, message: 'Ruta no encontrada.' })
