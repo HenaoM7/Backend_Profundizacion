@@ -1110,7 +1110,7 @@ El sistema:
             required: false,
             schema: {
               type: 'string',
-              enum: ['documentos', 'imagenes', 'reportes'],
+              enum: ['documentos', 'imagenes'],
               default: 'documentos',
             },
             description: 'Carpeta a listar (por defecto: documentos).',
@@ -1127,6 +1127,7 @@ El sistema:
                     {
                       id: 'documentos/1747123456789_mi_archivo.pdf',
                       name: '1747123456789_mi_archivo.pdf',
+                      originalName: 'mi_archivo.pdf',
                       mimeType: 'application/pdf',
                       size: 204800,
                       carpeta: 'documentos',
@@ -1149,16 +1150,21 @@ El sistema:
           },
         },
       },
+
       post: {
         tags: ['Documentos'],
-        summary: 'Subir un archivo',
-        description: `Sube un archivo al servidor local en la carpeta indicada.
+        summary: 'Subir un archivo y registrarlo en base de datos',
+        description: `Sube un archivo al servidor local y crea los registros en BD:
+- **\`maestro_documento\`** → metadata del archivo (nombre, ruta, extensión, tamaño)
+- **\`documento_contenido\`** → vínculo con contenido y usuario
  
 El archivo se envía como \`multipart/form-data\` con el campo \`archivo\`.
  
-El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp para evitar colisiones.
+El nombre se sanitiza automáticamente y se le agrega un timestamp para evitar colisiones.
  
-**Tamaño máximo:** 50MB
+La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento}/documentos/timestamp_nombre.pdf\`
+ 
+**Tamaño máximo:** 50 MB
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
         requestBody: {
@@ -1172,13 +1178,37 @@ El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp p
                   archivo: {
                     type: 'string',
                     format: 'binary',
-                    description: 'Archivo a subir (máx. 50MB)',
+                    description: 'Archivo a subir (máx. 50 MB)',
                   },
                   carpeta: {
                     type: 'string',
-                    enum: ['documentos', 'imagenes', 'reportes'],
+                    enum: ['documentos', 'imagenes'],
                     default: 'documentos',
                     description: 'Carpeta destino (opcional, por defecto: documentos)',
+                  },
+                  id_tipo_documento: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'UUID del tipo de documento (opcional)',
+                  },
+                  id_contenido: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'UUID del contenido al que pertenece el documento (opcional)',
+                  },
+                  id_usuario: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'UUID del usuario que sube el documento (opcional)',
+                  },
+                  esdescargable: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Indica si el documento puede ser descargado por los usuarios',
+                  },
+                  descripcion: {
+                    type: 'string',
+                    description: 'Descripción del documento (opcional)',
                   },
                 },
               },
@@ -1187,20 +1217,41 @@ El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp p
         },
         responses: {
           201: {
-            description: 'Archivo subido exitosamente.',
+            description: 'Archivo subido y registros en BD creados exitosamente.',
             content: {
               'application/json': {
                 example: {
                   success: true,
                   data: {
-                    id: 'documentos/1747123456789_mi_archivo.pdf',
-                    name: '1747123456789_mi_archivo.pdf',
-                    mimeType: 'application/pdf',
-                    size: 204800,
-                    carpeta: 'documentos',
-                    createdTime: '2026-05-16T10:00:00.000Z',
-                    modifiedTime: '2026-05-16T10:00:00.000Z',
-                    path: '/ruta/absoluta/uploads/documentos/1747123456789_mi_archivo.pdf',
+                    archivo: {
+                      id: 'documentos/1747123456789_mi_archivo.pdf',
+                      name: '1747123456789_mi_archivo.pdf',
+                      originalName: 'mi_archivo.pdf',
+                      mimeType: 'application/pdf',
+                      size: 204800,
+                      carpeta: 'documentos',
+                      createdTime: '2026-05-16T10:00:00.000Z',
+                      modifiedTime: '2026-05-16T10:00:00.000Z',
+                    },
+                    maestroDocumento: {
+                      id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                      numero_documento: 'mi_archivo.pdf',
+                      id_tipo_documento: null,
+                      ruta_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890/documentos/1747123456789_mi_archivo.pdf',
+                      fecha_creacion: '2026-05-16T10:00:00.000Z',
+                      fecha_modifica: null,
+                      activo: true,
+                      tamanno: 204800,
+                      extension: '.pdf',
+                    },
+                    contenido: {
+                      id_documento_contenido: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
+                      id_contenido: null,
+                      id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                      id_usuario: null,
+                      esdescargable: false,
+                      descripcion_documento: null,
+                    },
                   },
                 },
               },
@@ -1215,7 +1266,7 @@ El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp p
             },
           },
           500: {
-            description: 'Error al guardar el archivo.',
+            description: 'Error al guardar el archivo o registrar en BD (se hace rollback automático).',
             content: {
               'application/json': {
                 example: {success: false, error: 'Error al guardar el archivo'},
@@ -1226,15 +1277,13 @@ El nombre del archivo se sanitiza automáticamente y se le agrega un timestamp p
       },
     },
 
-    '/api/documentos/{id}/descargar': {
+    '/api/documentos/{id}': {
       get: {
         tags: ['Documentos'],
-        summary: 'Descargar un archivo',
-        description: `Descarga un archivo del servidor local.
+        summary: 'Obtener metadata de un documento por ID',
+        description: `Retorna la metadata completa de un documento buscando por \`id_documento_contenido\` en la base de datos.
  
-El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \`documentos/1747123456789_mi_archivo.pdf\`
- 
-> **Nota:** en Swagger UI usa el botón "Try it out" y escribe el id sin codificar. El navegador lo codificará automáticamente.
+La respuesta incluye un JOIN con \`maestro_documento\` para devolver todos los datos del archivo.
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
         parameters: [
@@ -1244,9 +1293,136 @@ El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \
             required: true,
             schema: {
               type: 'string',
-              example: 'documentos/1747123456789_mi_archivo.pdf',
+              format: 'uuid',
+              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
             },
-            description: 'ID del archivo (ruta relativa dentro de uploads/).',
+            description: 'UUID del documento (id_documento_contenido)',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Metadata del documento.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    id_documento_contenido: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
+                    id_contenido: null,
+                    id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    id_usuario: null,
+                    esdescargable: false,
+                    descripcion_documento: null,
+                    numero_documento: 'mi_archivo.pdf',
+                    ruta_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890/documentos/1747123456789_mi_archivo.pdf',
+                    extension: '.pdf',
+                    tamanno: 204800,
+                    activo: true,
+                    fecha_creacion: '2026-05-16T10:00:00.000Z',
+                  },
+                },
+              },
+            },
+          },
+          404: {
+            description: 'Documento no encontrado.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Documento no encontrado'},
+              },
+            },
+          },
+          500: {
+            description: 'Error interno del servidor.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Error interno del servidor'},
+              },
+            },
+          },
+        },
+      },
+
+      delete: {
+        tags: ['Documentos'],
+        summary: 'Eliminar un documento',
+        description: `Elimina el archivo físico del servidor y realiza los siguientes cambios en BD dentro de una transacción:
+- Borra el registro de \`documento_contenido\`
+- Hace **soft-delete** en \`maestro_documento\` (\`activo = false\`)
+ 
+El \`id\` corresponde al \`id_documento_contenido\`.
+ 
+**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              format: 'uuid',
+              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
+            },
+            description: 'UUID del documento a eliminar (id_documento_contenido)',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Documento eliminado correctamente.',
+            content: {
+              'application/json': {
+                example: {success: true, mensaje: 'Documento eliminado correctamente'},
+              },
+            },
+          },
+          404: {
+            description: 'Documento no encontrado.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Documento no encontrado'},
+              },
+            },
+          },
+          403: {
+            description: 'Ruta no permitida.',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Ruta no permitida'},
+              },
+            },
+          },
+          500: {
+            description: 'Error interno (se hace rollback automático en BD).',
+            content: {
+              'application/json': {
+                example: {success: false, error: 'Error interno del servidor'},
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/api/documentos/{id}/descargar': {
+      get: {
+        tags: ['Documentos'],
+        summary: 'Descargar un archivo por ID de documento',
+        description: `Descarga el archivo físico del servidor.
+ 
+El \`id\` corresponde al \`id_documento_contenido\`. El endpoint consulta la BD para obtener la \`ruta_documento\` y luego sirve el archivo.
+ 
+**Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+              format: 'uuid',
+              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
+            },
+            description: 'UUID del documento (id_documento_contenido)',
           },
         ],
         responses: {
@@ -1259,60 +1435,18 @@ El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \
             },
           },
           404: {
-            description: 'Archivo no encontrado.',
+            description: 'Documento no encontrado en BD o archivo no encontrado en disco.',
             content: {
               'application/json': {
-                example: {success: false, error: 'Archivo no encontrado'},
+                example: {success: false, error: 'Documento no encontrado en base de datos'},
               },
             },
           },
-        },
-      },
-    },
-
-    '/api/documentos/{id}': {
-      delete: {
-        tags: ['Documentos'],
-        summary: 'Eliminar un archivo',
-        description: `Elimina un archivo del servidor local.
- 
-El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \`documentos/1747123456789_mi_archivo.pdf\`
- 
-**Roles permitidos:** Admin, SuperAdmin`,
-        parameters: [
-          {
-            name: 'id',
-            in: 'path',
-            required: true,
-            schema: {
-              type: 'string',
-              example: 'documentos/1747123456789_mi_archivo.pdf',
-            },
-            description: 'ID del archivo a eliminar (ruta relativa dentro de uploads/).',
-          },
-        ],
-        responses: {
-          200: {
-            description: 'Archivo eliminado correctamente.',
+          500: {
+            description: 'Error interno del servidor.',
             content: {
               'application/json': {
-                example: {success: true, mensaje: 'Archivo eliminado correctamente'},
-              },
-            },
-          },
-          404: {
-            description: 'Archivo no encontrado.',
-            content: {
-              'application/json': {
-                example: {success: false, error: 'Archivo no encontrado'},
-              },
-            },
-          },
-          403: {
-            description: 'Ruta no permitida.',
-            content: {
-              'application/json': {
-                example: {success: false, error: 'Ruta no permitida'},
+                example: {success: false, error: 'Error interno del servidor'},
               },
             },
           },
@@ -1325,7 +1459,7 @@ El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \
       get: {
         tags: ['Admin Dashboard'],
         summary: 'Total de usuarios creados por el admin autenticado',
-        security: [{ BearerAuth: [] }],
+        security: [{BearerAuth: []}],
         responses: {
           200: {
             description: 'Total de usuarios registrados',
@@ -1333,17 +1467,17 @@ El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \
               'application/json': {
                 example: {
                   ok: true,
-                  data: { totalUsuarios: 12 },
+                  data: {totalUsuarios: 12},
                 },
               },
             },
           },
-          401: { $ref: '#/components/responses/Unauthorized' },
+          401: {$ref: '#/components/responses/Unauthorized'},
           500: {
             description: 'Error interno del servidor',
             content: {
               'application/json': {
-                example: { ok: false, message: 'Error interno del servidor' },
+                example: {ok: false, message: 'Error interno del servidor'},
               },
             },
           },

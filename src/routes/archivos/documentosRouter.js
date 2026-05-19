@@ -1,41 +1,38 @@
-import { Router } from "express";
-import multer from "multer";
-import ctrl from "../../controllers/archivos/documentoController.js";
+import { Router } from 'express';
+import multer from 'multer';
+import ctrl from '../../controllers/archivos/documentoController.js';
 
 const router = Router();
 
-// multer en memoria — no toca el disco hasta que el servicio lo decide
 const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB máximo por archivo
-    },
+    storage : multer.memoryStorage(),
+    limits  : { fileSize: 50 * 1024 * 1024 }, // 50 MB
 });
 
 /**
  * @swagger
  * /api/documentos:
  *   get:
- *     summary: Lista archivos de una carpeta
+ *     summary: Lista archivos del sistema de archivos local
  *     tags: [Documentos]
  *     parameters:
  *       - in: query
  *         name: carpeta
  *         schema:
  *           type: string
- *           enum: [documentos, imagenes, reportes]
+ *           enum: [documentos, imagenes]
  *           default: documentos
  *     responses:
  *       200:
  *         description: Lista de archivos
  */
-router.get("/", ctrl.listar.bind(ctrl));
+router.get('/', ctrl.listar.bind(ctrl));
 
 /**
  * @swagger
- * /api/documentos/{id}/descargar:
+ * /api/documentos/{id}:
  *   get:
- *     summary: Descarga un archivo
+ *     summary: Obtiene metadata de un documento por id_documento_contenido
  *     tags: [Documentos]
  *     parameters:
  *       - in: path
@@ -43,7 +40,30 @@ router.get("/", ctrl.listar.bind(ctrl));
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del archivo (ej. "documentos/1234_archivo.pdf")
+ *           format: uuid
+ *         description: id_documento_contenido
+ *     responses:
+ *       200:
+ *         description: Metadata del documento (JOIN con maestro_documento)
+ *       404:
+ *         description: Documento no encontrado
+ */
+router.get('/:id', ctrl.obtener.bind(ctrl));
+
+/**
+ * @swagger
+ * /api/documentos/{id}/descargar:
+ *   get:
+ *     summary: Descarga el archivo físico buscado por id_documento_contenido
+ *     tags: [Documentos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: id_documento_contenido
  *     responses:
  *       200:
  *         description: Archivo descargado
@@ -55,13 +75,13 @@ router.get("/", ctrl.listar.bind(ctrl));
  *       404:
  *         description: Archivo no encontrado
  */
-router.get("/:id/descargar", ctrl.descargar.bind(ctrl));
+router.get('/:id/descargar', ctrl.descargar.bind(ctrl));
 
 /**
  * @swagger
  * /api/documentos:
  *   post:
- *     summary: Sube un archivo
+ *     summary: Sube un archivo y crea registros en BD (maestro + contenido)
  *     tags: [Documentos]
  *     requestBody:
  *       required: true
@@ -69,29 +89,42 @@ router.get("/:id/descargar", ctrl.descargar.bind(ctrl));
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [archivo]
  *             properties:
  *               archivo:
  *                 type: string
  *                 format: binary
  *               carpeta:
  *                 type: string
- *                 enum: [documentos, imagenes, reportes]
+ *                 enum: [documentos, imagenes]
  *                 default: documentos
- *             required:
- *               - archivo
+ *               id_tipo_documento:
+ *                 type: string
+ *                 format: uuid
+ *               id_contenido:
+ *                 type: string
+ *                 format: uuid
+ *               id_usuario:
+ *                 type: string
+ *                 format: uuid
+ *               esdescargable:
+ *                 type: boolean
+ *                 default: false
+ *               descripcion:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Archivo subido exitosamente
+ *         description: Archivo subido y registros BD creados
  *       400:
  *         description: No se envió archivo
  */
-router.post("/", upload.single("archivo"), ctrl.subir.bind(ctrl));
+router.post('/', upload.single('archivo'), ctrl.subir.bind(ctrl));
 
 /**
  * @swagger
  * /api/documentos/{id}:
  *   delete:
- *     summary: Elimina un archivo
+ *     summary: Elimina archivo físico y registros en BD
  *     tags: [Documentos]
  *     parameters:
  *       - in: path
@@ -99,13 +132,14 @@ router.post("/", upload.single("archivo"), ctrl.subir.bind(ctrl));
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del archivo (ej. "documentos/1234_archivo.pdf")
+ *           format: uuid
+ *         description: id_documento_contenido
  *     responses:
  *       200:
- *         description: Archivo eliminado
+ *         description: Documento eliminado
  *       404:
- *         description: Archivo no encontrado
+ *         description: Documento no encontrado
  */
-router.delete("/:id", ctrl.eliminar.bind(ctrl));
+router.delete('/:id', ctrl.eliminar.bind(ctrl));
 
 export default router;
