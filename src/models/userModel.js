@@ -11,6 +11,9 @@ const baseUserSelect = `
     u.creacion,
     u.actualizacion,
     u.ultimo_acceso,
+    u.accesos_mes_actual,
+    u.accesos_mes_anterior,
+    u.accesos_ultimos_7dias,
     COALESCE(ARRAY_REMOVE(ARRAY_AGG(r.nombre ORDER BY r.nombre), NULL), '{}') AS roles
   FROM usuario u
   LEFT JOIN usuario_rol ur ON ur.id_usuario = u.id_usuario
