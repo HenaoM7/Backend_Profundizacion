@@ -59,6 +59,8 @@ Authorization: Bearer token-estudiante-001
   ],
   tags: [
     { name: 'Sistema',      description: 'Estado y salud de la API' },
+    { name: 'Autenticacion', description: 'Login y obtención de usuario autenticado' },
+    { name: 'SuperAdmin',   description: 'Gestión y vista de usuarios (solo SuperAdmin)' },
     { name: 'Cursos',       description: 'Gestión de cursos — Equipo 1' },
     { name: 'Modulos',      description: 'Gestión de módulos — Equipo 1' },
     { name: 'Contenidos',   description: 'Gestión de contenidos — Equipo 1' },
@@ -1361,6 +1363,8 @@ const swaggerSpec = swaggerJsdoc({
   apis: [
     './src/routes/teacher.routes.js',
     './src/routes/curso.routes.js',
+    './src/routes/authRoutes.js',
+    './src/routes/superadminRoutes.js',
     './src/routes/modulo.routes.js',
     './src/routes/contenido.routes.js',
     './src/routes/adminDashboardRoutes.js'

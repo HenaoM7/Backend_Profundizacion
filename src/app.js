@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import documentosRouter from './routes/archivos/documentosRouter.js';
 import teacherRoutes from './routes/teacher.routes.js';
 import gradeRoutes from './routes/gradeRoutes.js';
+import superadminRoutes from './routes/superadminRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import evaluacionRoutes from './routes/evaluacionRoutes.js';
 import progresoRoutes from './routes/progresoRoutes.js';
@@ -17,6 +18,7 @@ import cursoRoutes     from './routes/curso.routes.js';
 import moduloRoutes    from './routes/modulo.routes.js';
 import contenidoRoutes from './routes/contenido.routes.js';
 import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
+import { startViewRefreshScheduler, stopViewRefreshScheduler } from './utils/viewRefreshScheduler.js';
 
 
 const app = express();
@@ -52,6 +54,7 @@ app.use('/api/cursos', cursoRoutes);
 app.use('/api/cursos/:cursoId/modulos', moduloRoutes);
 app.use('/api/modulos/:moduloId/contenidos', contenidoRoutes);
 app.use('/grades', gradeRoutes);
+app.use('/api/superadmin', superadminRoutes);
 app.use('/certificates', certificateRoutes);
 app.use('/evaluaciones', evaluacionRoutes);
 app.use('/progreso', progresoRoutes);
@@ -67,5 +70,15 @@ app.use((_req, res) =>
 );
 
 app.use(errorHandler);
+
+// Inicializar scheduler de vistas materializadas
+startViewRefreshScheduler();
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('[AppShutdown] Deteniendo scheduler de vistas materializadas...');
+  stopViewRefreshScheduler();
+  process.exit(0);
+});
 
 export default app;
