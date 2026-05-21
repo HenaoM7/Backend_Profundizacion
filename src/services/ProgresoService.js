@@ -12,6 +12,9 @@ export const completarContenidoValidado = async (userId, idContenido) => {
   if (!contenido.activo) {
     throw { status: 400, message: 'El contenido no está activo.' };
   }
+  if (!contenido.modulo_activo) {
+    throw { status: 400, message: 'El módulo al que pertenece este contenido no está activo.' };
+  }
 
   const yaCompleto = await progresoRepo.yaCompleto(userId, idContenido);
   if (yaCompleto) {
@@ -24,7 +27,7 @@ export const completarContenidoValidado = async (userId, idContenido) => {
   try {
     await client.query('BEGIN');
 
-    await progresoRepo.saveProgresoContenido(userId, idCurso, idContenido);
+    await progresoRepo.saveProgresoContenido(userId, idCurso, idContenido, contenido.id_modulo);
 
     const { total, completados } = await progresoRepo.contarContenidos(userId, idCurso);
 
@@ -100,6 +103,11 @@ export const getProgresoCursoTodos = async (courseId) => {
 
 export const getMisCursos = async (userId) => {
   return progresoRepo.findMisCursos(userId);
+};
+
+export const getProgresoDetalleModulos = async (userId, courseId) => {
+  const modulos = await progresoRepo.findProgresoDetalleModulos(userId, courseId);
+  return { idUsuario: userId, idCurso: courseId, modulos };
 };
 
 export const getEstadisticasCurso = async (idCurso) => {

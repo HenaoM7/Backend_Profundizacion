@@ -5,7 +5,7 @@ import { ProgresoCurso }      from '../models/ProgresoCurso.js';
 export const findContenidoConContexto = async (idContenido) => {
   const result = await query(
     `SELECT c.id_contenido, c.id_modulo, c.activo,
-            m.id_curso, m.titulo AS titulo_modulo,
+            m.activo AS modulo_activo, m.id_curso, m.titulo AS titulo_modulo,
             cu.titulo AS titulo_curso
      FROM contenido c
      JOIN modulo m  ON c.id_modulo = m.id_modulo
@@ -24,14 +24,14 @@ export const yaCompleto = async (idUsuario, idContenido) => {
   return result.rows.length > 0;
 };
 
-export const saveProgresoContenido = async (idUsuario, idCurso, idContenido) => {
+export const saveProgresoContenido = async (idUsuario, idCurso, idContenido, idModulo) => {
   const result = await query(
-    `INSERT INTO progreso_estudiante (id_usuario, id_curso, id_contenido, completado, completado_en)
-     VALUES ($1, $2, $3, true, NOW())
+    `INSERT INTO progreso_estudiante (id_usuario, id_curso, id_contenido, id_modulo, completado, completado_en)
+     VALUES ($1, $2, $3, $4, true, NOW())
      ON CONFLICT (id_usuario, id_contenido)
-     DO UPDATE SET completado = true, completado_en = NOW()
+     DO UPDATE SET completado = true, completado_en = NOW(), id_modulo = EXCLUDED.id_modulo
      RETURNING *`,
-    [idUsuario, idCurso, idContenido]
+    [idUsuario, idCurso, idContenido, idModulo]
   );
   return ProgresoEstudiante.fromRow(result.rows[0]);
 };
@@ -41,7 +41,7 @@ export const contarContenidos = async (idUsuario, idCurso) => {
     `SELECT COUNT(c.id_contenido)::int AS total
      FROM contenido c
      JOIN modulo m ON c.id_modulo = m.id_modulo
-     WHERE m.id_curso = $1 AND c.activo = true`,
+     WHERE m.id_curso = $1 AND c.activo = true AND m.activo = true`,
     [idCurso]
   );
   const completados = await query(
@@ -49,7 +49,8 @@ export const contarContenidos = async (idUsuario, idCurso) => {
      FROM progreso_estudiante pe
      JOIN contenido c ON pe.id_contenido = c.id_contenido
      JOIN modulo    m ON c.id_modulo     = m.id_modulo
-     WHERE pe.id_usuario = $1 AND m.id_curso = $2 AND pe.completado = true`,
+     WHERE pe.id_usuario = $1 AND m.id_curso = $2 AND pe.completado = true
+       AND c.activo = true AND m.activo = true`,
     [idUsuario, idCurso]
   );
   return {
@@ -143,6 +144,31 @@ export const findRankingCurso = async (idCurso) => {
      WHERE pc.id_curso = $1::uuid
      ORDER BY posicion`,
     [idCurso]
+  );
+  return result.rows;
+};
+
+export const findProgresoDetalleModulos = async (idUsuario, idCurso) => {
+  const result = await query(
+    `SELECT
+       m.id_modulo,
+       m.titulo    AS titulo_modulo,
+       m.orden,
+       COUNT(CASE WHEN c.activo AND m.activo THEN c.id_contenido END)::int          AS total_contenidos,
+       COUNT(CASE WHEN pe.completado AND c.activo AND m.activo THEN pe.id_progreso END)::int AS completados,
+       ROUND(
+         COUNT(CASE WHEN pe.completado AND c.activo AND m.activo THEN pe.id_progreso END)::decimal
+         / NULLIF(COUNT(CASE WHEN c.activo AND m.activo THEN c.id_contenido END), 0) * 100,
+         2
+       )::float AS porcentaje_modulo
+     FROM modulo m
+     JOIN contenido c ON c.id_modulo = m.id_modulo
+     LEFT JOIN progreso_estudiante pe
+       ON pe.id_contenido = c.id_contenido AND pe.id_usuario = $1
+     WHERE m.id_curso = $2::uuid AND m.activo = true
+     GROUP BY m.id_modulo, m.titulo, m.orden
+     ORDER BY m.orden`,
+    [idUsuario, idCurso]
   );
   return result.rows;
 };

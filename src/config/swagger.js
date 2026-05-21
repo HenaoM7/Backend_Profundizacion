@@ -370,6 +370,46 @@ Si el estudiante aún no tiene actividad, retorna 0% con totales en 0.
       },
     },
 
+    '/progreso/curso/{id_curso}/modulos': {
+      get: {
+        tags: ['Progreso'],
+        summary: 'Progreso desglosado por módulo',
+        description: `Retorna el avance del estudiante módulo a módulo dentro del curso.
+
+Útil para mostrar en el frontend qué porcentaje del estudiante ha completado en cada módulo.
+
+**Query param opcional:** \`?userId=uuid\` — solo Admin/SuperAdmin/Docente pueden consultar a otros usuarios.
+
+**Roles:** Estudiante (solo el propio), Docente, Admin, SuperAdmin`,
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'id_curso', in: 'path', required: true, schema: { type: 'string', format: 'uuid', example: 'b0b0b0b0-3333-4444-8888-999999999993' }, description: 'UUID del curso.' },
+          { name: 'userId',   in: 'query', required: false, schema: { type: 'string', format: 'uuid', example: STUDENT_ID }, description: 'UUID del estudiante (solo Admin/Docente).' },
+        ],
+        responses: {
+          200: {
+            description: 'Progreso por módulo.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    idUsuario: STUDENT_ID,
+                    idCurso: 'b0b0b0b0-3333-4444-8888-999999999993',
+                    modulos: [
+                      { id_modulo: 'e0e0e0e0-5555-4444-8888-999999999995', titulo_modulo: 'Modelado Relacional', orden: 1, total_contenidos: 2, completados: 2, porcentaje_modulo: 100 },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+
     '/progreso/curso/{id_curso}/todos': {
       get: {
         tags: ['Progreso'],

@@ -42,6 +42,13 @@ router.get(
 );
 
 router.get(
+  '/curso/:id_curso/modulos',
+  authenticate,
+  authorize(ROLES.ESTUDIANTE, ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.DOCENTE),
+  progresoController.getProgresoDetalleModulos
+);
+
+router.get(
   '/curso/:id_curso',
   authenticate,
   authorize(ROLES.ESTUDIANTE, ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.DOCENTE),
