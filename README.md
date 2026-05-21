@@ -62,6 +62,7 @@ Instalar las dependencias de desarrollo:
 
 ```bash
 npm install --save-dev nodemon swagger-jsdoc swagger-ui-express
+npm install googleapis
 ```
 
 O instalar todas las dependencias simultáneamente:
@@ -111,17 +112,21 @@ http://localhost:3000/api-docs
 
 | Paquete | Versión | Descripción |
 |---------|---------|-------------|
-| express | ^4.18.2 | Framework web para Node.js |
-| dotenv | ^16.0.3 | Manejo de variables de entorno |
-| cors | ^2.8.5 | Middleware CORS para Express |
-| swagger-jsdoc | ^6.2.8 | Generación de especificación OpenAPI |
-| swagger-ui-express | ^5.0.0 | Interfaz UI para Swagger |
+| express | ^5.2.1 | Framework web para Node.js |
+| dotenv | ^17.4.2 | Manejo de variables de entorno |
+| cors | ^2.8.6 | Middleware CORS para Express |
+| pg | ^8.20.0 | Cliente PostgreSQL para Node.js |
+| googleapis | ^171.4.0 | Cliente oficial para APIs de Google |
+| multer | ^2.1.1 | Middleware para gestión de carga de archivos |
 
 ### Dependencias de Desarrollo
 
 | Paquete | Versión | Descripción |
 |---------|---------|-------------|
-| nodemon | ^3.0.1 | Monitoreo automático de cambios |
+| nodemon | ^3.1.14 | Monitoreo automático de cambios |
+| swagger-jsdoc | ^6.2.8 | Generación de especificación OpenAPI desde comentarios JSDoc |
+| swagger-ui-express | ^5.0.1 | Interfaz UI para Swagger |
+
 
 ## 🔀 Flujo de Trabajo Git
 
@@ -185,6 +190,7 @@ Este proyecto implementa el patrón **Modelo-Vista-Controlador** (MVC):
 - **Models**: Definen la estructura de datos y la lógica de negocio
 - **Views**: Formatean las respuestas para presentar al cliente
 - **Controllers**: Orquestan la lógica entre modelos y vistas
+- **Services**: Encapsulan la lógica de negocio reutilizable y llamadas a APIs externas
 - **Routes**: Definen los endpoints de la API
 
 ## ✅ Checklist de Configuración Inicial
@@ -198,4 +204,4 @@ Este proyecto implementa el patrón **Modelo-Vista-Controlador** (MVC):
 
 ---
 
-**Última actualización**: Abril 2026
+**Última actualización**:  2026

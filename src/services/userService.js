@@ -22,10 +22,15 @@ export const sanitizeUser = (user) => {
     nombre: user.nombre,
     correo: user.correo,
     activo: user.activo,
+    creadoPor: user.creado_por || null,
     roles,
     permisos: getPermissionsForRoles(roles),
     creacion: user.creacion,
     actualizacion: user.actualizacion,
+    ultimoAcceso: user.ultimo_acceso || null,
+    accesosMesActual: user.accesos_mes_actual || [],
+    accesosMesAnterior: user.accesos_mes_anterior || [],
+    accesosUltimos7dias: user.accesos_ultimos_7dias || [],
   };
 };
 
@@ -42,7 +47,7 @@ export const listUsers = async (filters = {}) => {
   return users.map(sanitizeUser);
 };
 
-export const createUser = async ({ nombre, correo, contrasena, roleNames, actorRoles }) => {
+export const createUser = async ({ nombre, correo, contrasena, roleNames, actorRoles, actorId }) => {
   if (!canAssignAllRoles(actorRoles, roleNames)) {
     return { errorCode: 'ROLE_ASSIGNMENT_NOT_ALLOWED' };
   }
@@ -67,6 +72,7 @@ export const createUser = async ({ nombre, correo, contrasena, roleNames, actorR
     nombre,
     correo,
     passwordHash,
+    createdBy: actorId,
     roleIds: roles.map((role) => role.id_rol),
   });
 

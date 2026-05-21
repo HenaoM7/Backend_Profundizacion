@@ -53,10 +53,17 @@ Authorization: Bearer <token>
   },
   servers: [{ url: 'http://localhost:3000', description: 'Desarrollo local' }],
   tags: [
-    { name: 'Sistema',      description: 'Estado de la API' },
-    { name: 'Progreso',     description: 'Avance del estudiante por contenido y curso; estadísticas académicas' },
-    { name: 'Validación',   description: 'Preguntas booleanas que controlan si un contenido se marca completado' },
-    { name: 'Certificados', description: 'Plantillas HTML, generación y descarga de certificados de finalización' },
+    { name: 'Sistema',         description: 'Estado y salud de la API' },
+    { name: 'Autenticacion',   description: 'Login y obtención de usuario autenticado' },
+    { name: 'SuperAdmin',      description: 'Gestión y vista de usuarios (solo SuperAdmin)' },
+    { name: 'Cursos',          description: 'Gestión de cursos — Equipo 1' },
+    { name: 'Modulos',         description: 'Gestión de módulos — Equipo 1' },
+    { name: 'Contenidos',      description: 'Gestión de contenidos — Equipo 1' },
+    { name: 'Teacher',         description: 'Orquestación Vista Docente — Equipo 6' },
+    { name: 'Admin Dashboard', description: 'Reportes del panel administrativo' },
+    { name: 'Progreso',        description: '[Equipo 5] Avance del estudiante por contenido y curso; estadísticas académicas' },
+    { name: 'Validación',      description: '[Equipo 5] Preguntas booleanas que controlan si un contenido se marca completado' },
+    { name: 'Certificados',    description: '[Equipo 5] Plantillas HTML, generación y descarga de certificados de finalización' },
   ],
   components: {
     securitySchemes: {

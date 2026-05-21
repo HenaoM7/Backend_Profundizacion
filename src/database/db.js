@@ -21,9 +21,9 @@ pool.on('error', (err) => {
 // Probar conexión
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('❌ Error conectando a la base de datos:', err);
+    console.error('Error conectando a la base de datos:', err);
   } else {
-    console.log('✅ Conectado a PostgreSQL:', res.rows[0]);
+    console.log('Conectado a PostgreSQL:', res.rows[0]);
   }
 });
 

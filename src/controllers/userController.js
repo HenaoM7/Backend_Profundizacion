@@ -57,6 +57,7 @@ export const registerUser = async (req, res, next) => {
       contrasena,
       roleNames,
       actorRoles: req.auth.roles || [],
+      actorId: req.auth.sub,
     });
 
     if (result.errorCode === 'ROLE_ASSIGNMENT_NOT_ALLOWED') {
