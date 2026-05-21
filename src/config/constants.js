@@ -5,25 +5,25 @@ export const ROLES = Object.freeze({
   ESTUDIANTE:  'Estudiante',
 });
 
-// Tokens de prueba mapeados a usuarios reales de la BD
+// Tokens de prueba — UUIDs corresponden a usuarios reales en la tabla usuario
 export const MOCK_TOKENS = Object.freeze({
   'token-superadmin-001': {
-    userId: '0b36846d-c1e9-4d67-a7b6-043638b3112d',
+    userId: '7790af4d-5033-481d-988b-7a0a0c798622',
     name:   'Super Admin',
     role:   ROLES.SUPER_ADMIN,
   },
   'token-admin-001': {
-    userId: 'f821425b-0e37-47d4-898e-c47d7ff98658',
+    userId: 'f6937573-dec7-424a-8522-2c1a1cb3449e',
     name:   'Administrador Base',
     role:   ROLES.ADMIN,
   },
   'token-docente-001': {
-    userId: 'c98d3456-0899-4ce7-ad4d-ed3f69095c77',
+    userId: 'af9b82dd-6565-4e2b-b672-930c1e1515ec',
     name:   'Docente Base',
     role:   ROLES.DOCENTE,
   },
   'token-estudiante-001': {
-    userId: 'fdb51787-747c-4c2c-8ed7-2bc9ebc62145',
+    userId: 'acd0de58-ae84-4d8f-b468-8818935fd382',
     name:   'Estudiante Base',
     role:   ROLES.ESTUDIANTE,
   },

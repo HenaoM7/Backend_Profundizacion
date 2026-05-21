@@ -93,7 +93,7 @@ export const findProgresoCursoTodos = async (idCurso) => {
     `SELECT pc.*,
             u.nombre AS nombre_estudiante
      FROM progreso_curso pc
-     LEFT JOIN usuario u ON pc.id_usuario::text = u.id_usuario::text
+     LEFT JOIN usuario u ON pc.id_usuario = u.id_usuario
      WHERE pc.id_curso = $1::uuid
      ORDER BY pc.porcentaje DESC`,
     [idCurso]
@@ -140,7 +140,7 @@ export const findRankingCurso = async (idCurso) => {
        pc.fecha_completado,
        RANK() OVER (ORDER BY pc.porcentaje DESC)::int AS posicion
      FROM progreso_curso pc
-     LEFT JOIN usuario u ON pc.id_usuario::text = u.id_usuario::text
+     LEFT JOIN usuario u ON pc.id_usuario = u.id_usuario
      WHERE pc.id_curso = $1::uuid
      ORDER BY posicion`,
     [idCurso]
