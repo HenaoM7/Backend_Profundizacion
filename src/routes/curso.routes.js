@@ -69,7 +69,7 @@ const router = Router();
 router.get(
   '/',
   authenticate,
-  authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE),
+  authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE, ROLES.ESTUDIANTE),
   CursoController.getAll
 );
 
