@@ -1097,54 +1097,41 @@ El sistema:
     '/api/documentos': {
       get: {
         tags: ['Documentos'],
-        summary: 'Listar archivos de una carpeta',
-        description: `Lista los archivos almacenados localmente en el servidor.
- 
-**Carpetas disponibles:** \`documentos\`, \`imagenes\`
+        summary: 'Listar documentos activos',
+        description: `Retorna todos los documentos activos registrados en \`maestro_documento\`,
+incluyendo el tipo de extensión obtenido del JOIN con \`tipo_documento\`.
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
-        parameters: [
-          {
-            name: 'carpeta',
-            in: 'query',
-            required: false,
-            schema: {
-              type: 'string',
-              enum: ['documentos', 'imagenes'],
-              default: 'documentos',
-            },
-            description: 'Carpeta a listar (por defecto: documentos).',
-          },
-        ],
         responses: {
           200: {
-            description: 'Lista de archivos.',
+            description: 'Lista de documentos activos.',
             content: {
               'application/json': {
                 example: {
                   success: true,
+                  total: 2,
                   data: [
                     {
-                      id: 'documentos/1747123456789_mi_archivo.pdf',
-                      name: '1747123456789_mi_archivo.pdf',
-                      originalName: 'mi_archivo.pdf',
-                      mimeType: 'application/pdf',
-                      size: 204800,
-                      carpeta: 'documentos',
-                      createdTime: '2026-05-16T10:00:00.000Z',
-                      modifiedTime: '2026-05-16T10:00:00.000Z',
+                      id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                      numero_documento: 'mi_archivo.pdf',
+                      id_tipo_documento: 'c3d4e5f6-a1b2-3456-cdef-123456789012',
+                      ruta_documento: 'documentos/1747123456789_mi_archivo.pdf',
+                      fecha_creacion: '2026-05-16T10:00:00.000Z',
+                      fecha_modifica: null,
+                      activo: true,
+                      tamanno: 204800,
+                      tipo_extension: 'pdf',
                     },
                   ],
-                  total: 1,
                 },
               },
             },
           },
           500: {
-            description: 'Error al listar archivos.',
+            description: 'Error interno del servidor.',
             content: {
               'application/json': {
-                example: {success: false, error: 'Error al leer la carpeta'},
+                example: {success: false, error: 'Error al obtener documentos'},
               },
             },
           },
@@ -1153,16 +1140,14 @@ El sistema:
 
       post: {
         tags: ['Documentos'],
-        summary: 'Subir un archivo y registrarlo en base de datos',
-        description: `Sube un archivo al servidor local y crea los registros en BD:
-- **\`maestro_documento\`** → metadata del archivo (nombre, ruta, extensión, tamaño)
-- **\`documento_contenido\`** → vínculo con contenido y usuario
+        summary: 'Subir un archivo y registrarlo en maestro_documento',
+        description: `Sube un archivo al servidor local y crea un único registro en \`maestro_documento\`.
  
-El archivo se envía como \`multipart/form-data\` con el campo \`archivo\`.
+**Detección automática de tipo:** la extensión del archivo se busca en la tabla \`tipo_documento\`.
+Si la extensión no está registrada, se asigna automáticamente el tipo \`desconocido\`.
  
-El nombre se sanitiza automáticamente y se le agrega un timestamp para evitar colisiones.
- 
-La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento}/documentos/timestamp_nombre.pdf\`
+La \`ruta_documento\` almacenada tiene el formato: \`documentos/timestamp_nombre.pdf\`
+y puede usarse directamente para construir la URL de descarga.
  
 **Tamaño máximo:** 50 MB
  
@@ -1184,31 +1169,7 @@ La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento
                     type: 'string',
                     enum: ['documentos', 'imagenes'],
                     default: 'documentos',
-                    description: 'Carpeta destino (opcional, por defecto: documentos)',
-                  },
-                  id_tipo_documento: {
-                    type: 'string',
-                    format: 'uuid',
-                    description: 'UUID del tipo de documento (opcional)',
-                  },
-                  id_contenido: {
-                    type: 'string',
-                    format: 'uuid',
-                    description: 'UUID del contenido al que pertenece el documento (opcional)',
-                  },
-                  id_usuario: {
-                    type: 'string',
-                    format: 'uuid',
-                    description: 'UUID del usuario que sube el documento (opcional)',
-                  },
-                  esdescargable: {
-                    type: 'boolean',
-                    default: false,
-                    description: 'Indica si el documento puede ser descargado por los usuarios',
-                  },
-                  descripcion: {
-                    type: 'string',
-                    description: 'Descripción del documento (opcional)',
+                    description: 'Carpeta destino (opcional)',
                   },
                 },
               },
@@ -1217,12 +1178,21 @@ La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento
         },
         responses: {
           201: {
-            description: 'Archivo subido y registros en BD creados exitosamente.',
+            description: 'Archivo subido y registro en maestro_documento creado exitosamente.',
             content: {
               'application/json': {
                 example: {
                   success: true,
                   data: {
+                    id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    numero_documento: 'mi_archivo.pdf',
+                    id_tipo_documento: 'c3d4e5f6-a1b2-3456-cdef-123456789012',
+                    ruta_documento: 'documentos/1747123456789_mi_archivo.pdf',
+                    fecha_creacion: '2026-05-16T10:00:00.000Z',
+                    fecha_modifica: null,
+                    activo: true,
+                    tamanno: 204800,
+                    tipo_extension: 'pdf',
                     archivo: {
                       id: 'documentos/1747123456789_mi_archivo.pdf',
                       name: '1747123456789_mi_archivo.pdf',
@@ -1232,25 +1202,6 @@ La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento
                       carpeta: 'documentos',
                       createdTime: '2026-05-16T10:00:00.000Z',
                       modifiedTime: '2026-05-16T10:00:00.000Z',
-                    },
-                    maestroDocumento: {
-                      id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-                      numero_documento: 'mi_archivo.pdf',
-                      id_tipo_documento: null,
-                      ruta_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890/documentos/1747123456789_mi_archivo.pdf',
-                      fecha_creacion: '2026-05-16T10:00:00.000Z',
-                      fecha_modifica: null,
-                      activo: true,
-                      tamanno: 204800,
-                      extension: '.pdf',
-                    },
-                    contenido: {
-                      id_documento_contenido: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
-                      id_contenido: null,
-                      id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-                      id_usuario: null,
-                      esdescargable: false,
-                      descripcion_documento: null,
                     },
                   },
                 },
@@ -1266,7 +1217,7 @@ La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento
             },
           },
           500: {
-            description: 'Error al guardar el archivo o registrar en BD (se hace rollback automático).',
+            description: 'Error al guardar el archivo o insertar en BD.',
             content: {
               'application/json': {
                 example: {success: false, error: 'Error al guardar el archivo'},
@@ -1280,10 +1231,13 @@ La \`ruta_documento\` almacenada en BD tiene el formato: \`{id_maestro_documento
     '/api/documentos/{id}': {
       get: {
         tags: ['Documentos'],
-        summary: 'Obtener metadata de un documento por ID',
-        description: `Retorna la metadata completa de un documento buscando por \`id_documento_contenido\` en la base de datos.
+        summary: 'Obtener metadata de un documento',
+        description: `Retorna la metadata completa de un documento buscando por \`id_maestro_documento\`.
  
-La respuesta incluye un JOIN con \`maestro_documento\` para devolver todos los datos del archivo.
+La respuesta incluye el JOIN con \`tipo_documento\` para exponer la extensión del archivo.
+ 
+El campo \`ruta_documento\` es el \`fileId\` que el frontend puede usar para construir
+la URL de descarga: \`GET /api/documentos/{id}/descargar\`
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
         parameters: [
@@ -1291,12 +1245,8 @@ La respuesta incluye un JOIN con \`maestro_documento\` para devolver todos los d
             name: 'id',
             in: 'path',
             required: true,
-            schema: {
-              type: 'string',
-              format: 'uuid',
-              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
-            },
-            description: 'UUID del documento (id_documento_contenido)',
+            schema: {type: 'string', format: 'uuid', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'},
+            description: 'UUID del documento (id_maestro_documento)',
           },
         ],
         responses: {
@@ -1307,18 +1257,15 @@ La respuesta incluye un JOIN con \`maestro_documento\` para devolver todos los d
                 example: {
                   success: true,
                   data: {
-                    id_documento_contenido: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
-                    id_contenido: null,
                     id_maestro_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-                    id_usuario: null,
-                    esdescargable: false,
-                    descripcion_documento: null,
                     numero_documento: 'mi_archivo.pdf',
-                    ruta_documento: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890/documentos/1747123456789_mi_archivo.pdf',
-                    extension: '.pdf',
-                    tamanno: 204800,
-                    activo: true,
+                    id_tipo_documento: 'c3d4e5f6-a1b2-3456-cdef-123456789012',
+                    ruta_documento: 'documentos/1747123456789_mi_archivo.pdf',
                     fecha_creacion: '2026-05-16T10:00:00.000Z',
+                    fecha_modifica: null,
+                    activo: true,
+                    tamanno: 204800,
+                    tipo_extension: 'pdf',
                   },
                 },
               },
@@ -1346,11 +1293,11 @@ La respuesta incluye un JOIN con \`maestro_documento\` para devolver todos los d
       delete: {
         tags: ['Documentos'],
         summary: 'Eliminar un documento',
-        description: `Elimina el archivo físico del servidor y realiza los siguientes cambios en BD dentro de una transacción:
-- Borra el registro de \`documento_contenido\`
-- Hace **soft-delete** en \`maestro_documento\` (\`activo = false\`)
+        description: `Realiza un **soft-delete** en \`maestro_documento\` (\`activo = false\`)
+y elimina el archivo físico del servidor usando la \`ruta_documento\` almacenada en BD.
  
-El \`id\` corresponde al \`id_documento_contenido\`.
+> Si el archivo físico ya no existe en disco, la operación de BD igual se completa
+y se retorna un aviso en consola (no falla la respuesta).
  
 **Roles permitidos:** Admin, SuperAdmin`,
         parameters: [
@@ -1358,12 +1305,8 @@ El \`id\` corresponde al \`id_documento_contenido\`.
             name: 'id',
             in: 'path',
             required: true,
-            schema: {
-              type: 'string',
-              format: 'uuid',
-              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
-            },
-            description: 'UUID del documento a eliminar (id_documento_contenido)',
+            schema: {type: 'string', format: 'uuid', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'},
+            description: 'UUID del documento a eliminar (id_maestro_documento)',
           },
         ],
         responses: {
@@ -1383,16 +1326,8 @@ El \`id\` corresponde al \`id_documento_contenido\`.
               },
             },
           },
-          403: {
-            description: 'Ruta no permitida.',
-            content: {
-              'application/json': {
-                example: {success: false, error: 'Ruta no permitida'},
-              },
-            },
-          },
           500: {
-            description: 'Error interno (se hace rollback automático en BD).',
+            description: 'Error interno del servidor.',
             content: {
               'application/json': {
                 example: {success: false, error: 'Error interno del servidor'},
@@ -1406,10 +1341,11 @@ El \`id\` corresponde al \`id_documento_contenido\`.
     '/api/documentos/{id}/descargar': {
       get: {
         tags: ['Documentos'],
-        summary: 'Descargar un archivo por ID de documento',
+        summary: 'Descargar un archivo',
         description: `Descarga el archivo físico del servidor.
  
-El \`id\` corresponde al \`id_documento_contenido\`. El endpoint consulta la BD para obtener la \`ruta_documento\` y luego sirve el archivo.
+El endpoint busca el documento por \`id_maestro_documento\` en BD,
+obtiene la \`ruta_documento\` y sirve el archivo directamente.
  
 **Roles permitidos:** Estudiante, Docente, Admin, SuperAdmin`,
         parameters: [
@@ -1417,12 +1353,8 @@ El \`id\` corresponde al \`id_documento_contenido\`. El endpoint consulta la BD 
             name: 'id',
             in: 'path',
             required: true,
-            schema: {
-              type: 'string',
-              format: 'uuid',
-              example: 'f0e1d2c3-b4a5-6789-fedc-ba0987654321',
-            },
-            description: 'UUID del documento (id_documento_contenido)',
+            schema: {type: 'string', format: 'uuid', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'},
+            description: 'UUID del documento (id_maestro_documento)',
           },
         ],
         responses: {
