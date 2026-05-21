@@ -1360,14 +1360,10 @@ El \`id\` es la ruta relativa del archivo dentro de \`uploads/\`, por ejemplo: \
 
 const swaggerSpec = swaggerJsdoc({
   definition,
+  // incluir todos los archivos de rutas dinámicamente
   apis: [
-    './src/routes/teacher.routes.js',
-    './src/routes/curso.routes.js',
-    './src/routes/authRoutes.js',
-    './src/routes/superadminRoutes.js',
-    './src/routes/modulo.routes.js',
-    './src/routes/contenido.routes.js',
-    './src/routes/adminDashboardRoutes.js'
+    './src/routes/**/*.js',
+    './src/routes/*.js',
   ],
 });
 export default swaggerSpec;
