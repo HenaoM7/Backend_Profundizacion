@@ -688,6 +688,7 @@ const swaggerSpec = swaggerJsdoc({
     './src/routes/certificateRoutes.js',
     './src/routes/progresoRoutes.js',
     './src/routes/validacionRoutes.js',
+    './src/routes/archivos/documentosRouter.js'
   ],
 });
 export default swaggerSpec;
