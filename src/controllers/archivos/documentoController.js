@@ -7,11 +7,6 @@ import TipoDocumento from '../../repositories/TipoDocumento.js';
 // Debe coincidir con URL_PUBLICA en localFileService.js
 const URL_PUBLICA = 'http://localhost:3000/src/';
 
-/**
- * Construye la urlPublica a partir de ruta_documento almacenada en BD.
- * ruta_documento = "documentos/timestamp_nombre.pdf"
- * urlPublica     = "http://localhost:3000/src/uploads/documentos/timestamp_nombre.pdf"
- */
 const buildUrlPublica = (rutaDocumento) => {
     if (!rutaDocumento) return null;
     return `${URL_PUBLICA}uploads/${rutaDocumento}`;
