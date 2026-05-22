@@ -22,51 +22,70 @@ export const getConfig = async (_req, res, next) => {
  */
 export const updateConfig = async (req, res, next) => {
   try {
-    // Sanitizar los datos del body (recibe nombres antiguos del frontend)
+    // Sanitizar los datos del body (acepta nombres antiguos y nuevos)
     const configData = {};
 
-    if (req.body.logo_url !== undefined) {
-      configData.logo_url = typeof req.body.logo_url === 'string' ? req.body.logo_url.trim() : req.body.logo_url;
+    // Logo: acepta logo_url (antiguo) y url_logo (nuevo)
+    const logoValue = req.body.logo_url !== undefined ? req.body.logo_url : req.body.url_logo;
+    if (logoValue !== undefined) {
+      configData.logo_url = typeof logoValue === 'string' ? logoValue.trim() : logoValue;
     }
 
-    if (req.body.primary_color !== undefined) {
-      configData.primary_color = typeof req.body.primary_color === 'string' ? req.body.primary_color.trim() : req.body.primary_color;
+    // Color primario: acepta primary_color (antiguo) y color_primario (nuevo)
+    const primaryColorValue = req.body.primary_color !== undefined ? req.body.primary_color : req.body.color_primario;
+    if (primaryColorValue !== undefined) {
+      configData.primary_color = typeof primaryColorValue === 'string' ? primaryColorValue.trim() : primaryColorValue;
     }
 
-    if (req.body.secondary_color !== undefined) {
-      configData.secondary_color = typeof req.body.secondary_color === 'string' ? req.body.secondary_color.trim() : req.body.secondary_color;
+    // Color secundario: acepta secondary_color (antiguo) y color_secundario (nuevo)
+    const secondaryColorValue = req.body.secondary_color !== undefined ? req.body.secondary_color : req.body.color_secundario;
+    if (secondaryColorValue !== undefined) {
+      configData.secondary_color = typeof secondaryColorValue === 'string' ? secondaryColorValue.trim() : secondaryColorValue;
     }
 
-    if (req.body.tertiary_color !== undefined) {
-      configData.tertiary_color = typeof req.body.tertiary_color === 'string' ? req.body.tertiary_color.trim() : req.body.tertiary_color;
+    // Color fondo: acepta background_color (antiguo) y color_fondo (nuevo)
+    const bgColorValue = req.body.background_color !== undefined ? req.body.background_color : req.body.color_fondo;
+    if (bgColorValue !== undefined) {
+      configData.background_color = typeof bgColorValue === 'string' ? bgColorValue.trim() : bgColorValue;
     }
 
-    if (req.body.color_muted !== undefined) {
-      configData.color_muted = typeof req.body.color_muted === 'string' ? req.body.color_muted.trim() : req.body.color_muted;
+    // Texto primario: acepta text_primary (antiguo) y texto_primario (nuevo)
+    const textPrimaryValue = req.body.text_primary !== undefined ? req.body.text_primary : req.body.texto_primario;
+    if (textPrimaryValue !== undefined) {
+      configData.text_primary = typeof textPrimaryValue === 'string' ? textPrimaryValue.trim() : textPrimaryValue;
     }
 
-    if (req.body.background_color !== undefined) {
-      configData.background_color = typeof req.body.background_color === 'string' ? req.body.background_color.trim() : req.body.background_color;
+    // Texto secundario: acepta text_secondary (antiguo) y texto_secundario (nuevo)
+    const textSecondaryValue = req.body.text_secondary !== undefined ? req.body.text_secondary : req.body.texto_secundario;
+    if (textSecondaryValue !== undefined) {
+      configData.text_secondary = typeof textSecondaryValue === 'string' ? textSecondaryValue.trim() : textSecondaryValue;
     }
 
-    if (req.body.text_primary !== undefined) {
-      configData.text_primary = typeof req.body.text_primary === 'string' ? req.body.text_primary.trim() : req.body.text_primary;
-    }
-
-    if (req.body.text_secondary !== undefined) {
-      configData.text_secondary = typeof req.body.text_secondary === 'string' ? req.body.text_secondary.trim() : req.body.text_secondary;
-    }
-
+    // Texto en oscuro: acepta text_on_dark (ambos usan el mismo nombre)
     if (req.body.text_on_dark !== undefined) {
       configData.text_on_dark = typeof req.body.text_on_dark === 'string' ? req.body.text_on_dark.trim() : req.body.text_on_dark;
     }
 
-    if (req.body.border_color !== undefined) {
-      configData.border_color = typeof req.body.border_color === 'string' ? req.body.border_color.trim() : req.body.border_color;
+    // Color muted: acepta color_muted (ambos usan el mismo nombre)
+    if (req.body.color_muted !== undefined) {
+      configData.color_muted = typeof req.body.color_muted === 'string' ? req.body.color_muted.trim() : req.body.color_muted;
     }
 
-    if (req.body.input_color !== undefined) {
-      configData.input_color = typeof req.body.input_color === 'string' ? req.body.input_color.trim() : req.body.input_color;
+    // Color borde: acepta border_color (antiguo) y color_borde (nuevo)
+    const borderColorValue = req.body.border_color !== undefined ? req.body.border_color : req.body.color_borde;
+    if (borderColorValue !== undefined) {
+      configData.border_color = typeof borderColorValue === 'string' ? borderColorValue.trim() : borderColorValue;
+    }
+
+    // Color input: acepta input_color (antiguo) y color_input (nuevo)
+    const inputColorValue = req.body.input_color !== undefined ? req.body.input_color : req.body.color_input;
+    if (inputColorValue !== undefined) {
+      configData.input_color = typeof inputColorValue === 'string' ? inputColorValue.trim() : inputColorValue;
+    }
+
+    // Color terciario (solo antiguo, por compatibilidad)
+    if (req.body.tertiary_color !== undefined) {
+      configData.tertiary_color = typeof req.body.tertiary_color === 'string' ? req.body.tertiary_color.trim() : req.body.tertiary_color;
     }
 
     // Validar que al menos un campo fue enviado
