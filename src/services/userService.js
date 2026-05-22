@@ -28,6 +28,9 @@ export const sanitizeUser = (user) => {
     creacion: user.creacion,
     actualizacion: user.actualizacion,
     ultimoAcceso: user.ultimo_acceso || null,
+    accesosMesActual: user.accesos_mes_actual || [],
+    accesosMesAnterior: user.accesos_mes_anterior || [],
+    accesosUltimos7dias: user.accesos_ultimos_7dias || [],
   };
 };
 

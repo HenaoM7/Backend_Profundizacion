@@ -59,6 +59,11 @@ Authorization: Bearer token-estudiante-001
   ],
   tags: [
     { name: 'Sistema',      description: 'Estado y salud de la API' },
+    { name: 'Autenticacion', description: 'Login y obtención de usuario autenticado' },
+    { name: 'SuperAdmin',   description: 'Gestión y vista de usuarios (solo SuperAdmin)' },
+    { name: 'Cursos',       description: 'Gestión de cursos — Equipo 1' },
+    { name: 'Modulos',      description: 'Gestión de módulos — Equipo 1' },
+    { name: 'Contenidos',   description: 'Gestión de contenidos — Equipo 1' },
     { name: 'Notas',        description: 'Gestión de calificaciones por módulo y curso' },
     { name: 'Progreso',     description: 'Seguimiento de avance por contenido; al 100% genera nota y certificado automáticamente' },
     { name: 'Certificados', description: 'Generación, consulta y descarga de certificados de finalización' },
@@ -1421,6 +1426,14 @@ obtiene la \`ruta_documento\` y sirve el archivo directamente.
 
 const swaggerSpec = swaggerJsdoc({
   definition,
-  apis: ['./src/routes/teacher.routes.js','./src/routes/adminDashboardRoutes.js'],
+  apis: [
+    './src/routes/teacher.routes.js',
+    './src/routes/curso.routes.js',
+    './src/routes/authRoutes.js',
+    './src/routes/superadminRoutes.js',
+    './src/routes/modulo.routes.js',
+    './src/routes/contenido.routes.js',
+    './src/routes/adminDashboardRoutes.js'
+  ],
 });
 export default swaggerSpec;
