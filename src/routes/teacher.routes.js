@@ -4,6 +4,7 @@ import {
   obtenerResumenDashboard,
   obtenerCursosEnConstruccion,
   obtenerTotalEstudiantes,
+  obtenerTopCursosCompletados,
   obtenerTopCursosPorInscritos,
   obtenerCursosConMenosInscritosHandler,
   obtenerUltimosEstudiantesInscritosHandler,
@@ -128,12 +129,47 @@ router.get(
 
 /**
  * @openapi
+ * /api/teacher/dashboard/courses/top-completed:
+ *   get:
+ *     tags: [Teacher]
+ *     summary: Cursos con más estudiantes que completaron (punto 3)
+ *     description: |
+ *       Top 5 fijo. Cuenta estudiantes con certificado emitido (tabla certificado) por curso del docente.
+ *       Solo cursos con total_completados > 0; si ninguno califica, cursos [].
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: teacher_id
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Ranking de cursos por completados
+ *       400:
+ *         description: Falta teacher_id para administradores
+ *       401:
+ *         description: Sin JWT
+ *       403:
+ *         description: Rol no autorizado
+ */
+router.get(
+  '/dashboard/courses/top-completed',
+  authMiddleware,
+  obtenerTopCursosCompletados,
+);
+
+/**
+ * @openapi
  * /api/teacher/dashboard/courses/top-enrolled:
  *   get:
  *     tags: [Teacher]
  *     summary: Cursos con más estudiantes inscritos (punto 4)
  *     description: |
- *       Los 5 cursos del docente con más estudiantes inscritos (orden descendente).
+ *       Top 5 fijo (no lista todos los cursos). Solo cursos con total_inscritos > 0.
+ *       Si ninguno califica, cursos viene vacío [] para que el front muestre estado vacío.
  *       Misma autenticación y teacher_id que el resto del dashboard.
  *     security:
  *       - BearerAuth: []
@@ -167,7 +203,7 @@ router.get(
  *     tags: [Teacher]
  *     summary: Cursos con menos estudiantes inscritos (punto 5)
  *     description: |
- *       Los 5 cursos del docente con menos estudiantes inscritos (orden ascendente).
+ *       Top 5 fijo (orden ascendente). Puede incluir cursos con 0 inscritos.
  *       Misma autenticación y teacher_id que el resto del dashboard.
  *     security:
  *       - BearerAuth: []

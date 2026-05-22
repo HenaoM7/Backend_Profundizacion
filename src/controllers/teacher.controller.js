@@ -2,6 +2,7 @@ import {
   obtenerResumenTotalesDocente,
   obtenerCursosEnConstruccionDocente,
   obtenerTotalEstudiantesMatriculados,
+  obtenerCursosConMasCompletados,
   obtenerCursosConMasInscritos,
   obtenerCursosConMenosInscritos,
   obtenerUltimosEstudiantesInscritos,
@@ -84,6 +85,20 @@ export const obtenerTotalEstudiantes = async (req, res, next) => {
     }
 
     const datos = await obtenerTotalEstudiantesMatriculados(r.idDocente);
+    res.json(datos);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const obtenerTopCursosCompletados = async (req, res, next) => {
+  try {
+    const r = resolverIdDocenteDashboard(req);
+    if (!r.ok) {
+      return res.status(r.status).json(r.body);
+    }
+
+    const datos = await obtenerCursosConMasCompletados(r.idDocente);
     res.json(datos);
   } catch (error) {
     next(error);

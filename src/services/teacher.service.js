@@ -51,12 +51,35 @@ export const obtenerTotalEstudiantesMatriculados = async (idDocente) => {
 const TOP_CURSOS_POR_INSCRITOS = 5;
 const ULTIMOS_ESTUDIANTES_INSCRITOS = 10;
 
+export const obtenerCursosConMasCompletados = async (idDocente) => {
+  const { rows } = await query(
+    `
+    SELECT id_curso, titulo, total_completados
+    FROM v_docente_completados_por_curso
+    WHERE id_docente = $1
+      AND total_completados > 0
+    ORDER BY total_completados DESC, titulo ASC
+    LIMIT $2
+    `,
+    [idDocente, TOP_CURSOS_POR_INSCRITOS],
+  );
+
+  return {
+    cursos: rows.map((r) => ({
+      id_curso: r.id_curso,
+      titulo: r.titulo,
+      total_completados: Number(r.total_completados),
+    })),
+  };
+};
+
 export const obtenerCursosConMasInscritos = async (idDocente) => {
   const { rows } = await query(
     `
     SELECT id_curso, titulo, total_inscritos
     FROM v_docente_inscritos_por_curso
     WHERE id_docente = $1
+      AND total_inscritos > 0
     ORDER BY total_inscritos DESC, titulo ASC
     LIMIT $2
     `,
