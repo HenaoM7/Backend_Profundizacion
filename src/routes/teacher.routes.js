@@ -98,7 +98,7 @@ router.get(
  * /api/teacher/dashboard/students/total:
  *   get:
  *     tags: [Teacher]
- *     summary: Total de estudiantes matriculados en mis cursos (punto 6)
+ *     summary: Total de estudiantes matriculados en mis cursos
  *     description: |
  *       Cuenta estudiantes distintos (inscripcion.id_usuario) en cursos del docente (curso.id_usuario).
  *       Misma autenticación y teacher_id que los demás endpoints del dashboard.
@@ -132,7 +132,7 @@ router.get(
  * /api/teacher/dashboard/courses/top-completed:
  *   get:
  *     tags: [Teacher]
- *     summary: Cursos con más estudiantes que completaron (punto 3)
+ *     summary: Cursos con más estudiantes que completaron
  *     description: |
  *       Top 5 fijo. Cuenta estudiantes con certificado emitido (tabla certificado) por curso del docente.
  *       Solo cursos con total_completados > 0; si ninguno califica, cursos [].
@@ -166,7 +166,7 @@ router.get(
  * /api/teacher/dashboard/courses/top-enrolled:
  *   get:
  *     tags: [Teacher]
- *     summary: Cursos con más estudiantes inscritos (punto 4)
+ *     summary: Cursos con más estudiantes inscritos
  *     description: |
  *       Top 5 fijo (no lista todos los cursos). Solo cursos con total_inscritos > 0.
  *       Si ninguno califica, cursos viene vacío [] para que el front muestre estado vacío.
@@ -201,7 +201,7 @@ router.get(
  * /api/teacher/dashboard/courses/lowest-enrolled:
  *   get:
  *     tags: [Teacher]
- *     summary: Cursos con menos estudiantes inscritos (punto 5)
+ *     summary: Cursos con menos estudiantes inscritos
  *     description: |
  *       Top 5 fijo (orden ascendente). Puede incluir cursos con 0 inscritos.
  *       Misma autenticación y teacher_id que el resto del dashboard.
@@ -235,7 +235,7 @@ router.get(
  * /api/teacher/dashboard/students/recent:
  *   get:
  *     tags: [Teacher]
- *     summary: Últimos 10 estudiantes inscritos con avance (punto 10)
+ *     summary: Últimos 10 estudiantes inscritos con avance
  *     description: |
  *       Inscripciones en cursos del docente, ordenadas por fecha_inicio descendente.
  *       porcentaje desde progreso_curso (0 si aún no hay registro de progreso).
