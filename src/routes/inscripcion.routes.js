@@ -162,7 +162,7 @@ router.put('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES
  *       200:
  *         description: Inscripción eliminada
  */
-router.delete('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), InscripcionController.remove);
+router.delete('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.ESTUDIANTE), InscripcionController.remove);
 
 /**
  * @swagger
