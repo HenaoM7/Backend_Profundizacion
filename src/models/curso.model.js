@@ -5,7 +5,7 @@ import pool from '../database/db.js';
 
 export const findAll = async ({ activo, id_usuario, page = 1, limit = 10 } = {}) => {
   const pageNum  = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+  const limitNum = parseInt(limit, 20);
   const offset   = (pageNum - 1) * limitNum;
 
   const values     = [];
