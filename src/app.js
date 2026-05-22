@@ -17,6 +17,7 @@ import progresoRoutes from './routes/progresoRoutes.js';
 import cursoRoutes     from './routes/curso.routes.js';
 import moduloRoutes    from './routes/modulo.routes.js';
 import contenidoRoutes from './routes/contenido.routes.js';
+import inscripcionRoutes from './routes/inscripcion.routes.js';
 import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
 import { startViewRefreshScheduler, stopViewRefreshScheduler } from './utils/viewRefreshScheduler.js';
 
@@ -58,6 +59,7 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/certificates', certificateRoutes);
 app.use('/evaluaciones', evaluacionRoutes);
 app.use('/progreso', progresoRoutes);
+app.use('/api/inscripciones', inscripcionRoutes);
 
 app.get('/health', (_req, res) =>
     res.json({ status: 'UP', service: 'PlataformaIUSH-Backend', version: '1.0.0' })

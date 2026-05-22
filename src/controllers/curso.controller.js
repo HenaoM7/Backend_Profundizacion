@@ -1,5 +1,6 @@
 // src/controllers/curso.controller.js
 import * as CursoModel from '../models/curso.model.js';
+import * as InscripcionModel from '../models/inscripcion.model.js';
 import { ROLES } from '../config/constants.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -14,6 +15,7 @@ const fmt = (c) => ({
   modulosCount:  parseInt(c.modulos_count ?? '0', 10),
   creacion:      c.creacion,
   actualizacion: c.actualizacion,
+  ...(c.nombre_usuario && { nombreUsuario: c.nombre_usuario }),
 });
 
 const fmtModulo = (m) => ({
@@ -24,6 +26,47 @@ const fmtModulo = (m) => ({
   orden:           m.orden,
   contenidosCount: parseInt(m.contenidos_count ?? '0', 10),
   creacion:        m.creacion,
+});
+
+const fmtContenidoDetallado = (c) => ({
+  idContenido:    c.idContenido,
+  titulo:         c.titulo,
+  descripcion:    c.descripcion,
+  tipo:           c.tipo,
+  url_o_texto:    c.url_o_texto,
+  orden:          c.orden,
+  activo:         c.activo,
+  creacion:       c.creacion,
+  actualizacion:  c.actualizacion,
+  completado:     c.completado,
+  completadoEn:   c.completadoEn,
+});
+
+const fmtModuloDetallado = (m) => ({
+  idModulo:              m.idModulo,
+  titulo:                m.titulo,
+  descripcion:           m.descripcion,
+  activo:                m.activo,
+  orden:                 m.orden,
+  creacion:              m.creacion,
+  actualizacion:         m.actualizacion,
+  contenidosCompletados: m.contenidosCompletados,
+  totalContenidos:       m.totalContenidos,
+  porcentaje:            m.porcentaje,
+  contenidos:            m.contenidos.map(fmtContenidoDetallado),
+});
+
+const fmtProgresoCursoDetallado = (p) => ({
+  idProgresoCurso:       p.id_progreso_curso,
+  idUsuario:             p.id_usuario,
+  idCurso:               p.id_curso,
+  porcentaje:            Number(p.porcentaje ?? 0),
+  contenidosCompletados: Number(p.contenidos_completados ?? 0),
+  totalContenidos:       Number(p.total_contenidos ?? 0),
+  completado:            Boolean(p.completado),
+  aprobado:              Boolean(p.aprobado),
+  fechaInicio:           p.fecha_inicio ?? null,
+  fechaCompletado:       p.fecha_completado ?? null,
 });
 
 // ── GET /api/cursos ────────────────────────────────────────
@@ -77,6 +120,49 @@ export const getById = async (req, res, next) => {
       data: {
         ...fmt({ ...curso, modulos_count: String(curso.modulos?.length ?? 0) }),
         modulos: (curso.modulos ?? []).map(fmtModulo),
+      },
+    });
+  } catch (err) { next(err); }
+};
+
+export const getDetalleCompleto = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.params;
+    const usuario = req.user;
+
+    if (!UUID_REGEX.test(id)) {
+      return res.status(400).json({ success: false, message: 'ID de curso inválido.' });
+    }
+    if (!UUID_REGEX.test(id_usuario)) {
+      return res.status(400).json({ success: false, message: 'ID de usuario inválido.' });
+    }
+
+    // No validar que el id_usuario coincida con el token: usar el id_usuario recibido en la URL
+    const esStaff = [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE].includes(usuario.role);
+
+    const detalle = await CursoModel.findDetalleCompleto(id, id_usuario);
+
+    if (!detalle) {
+      return res.status(404).json({ success: false, message: 'Curso no encontrado.' });
+    }
+
+    if (!esStaff) {
+      const inscrito = await InscripcionModel.exists(id, id_usuario);
+      if (!inscrito) {
+        return res.status(403).json({ success: false, message: 'El usuario no está inscrito en este curso.' });
+      }
+    }
+
+    const progresoCurso = fmtProgresoCursoDetallado(detalle.progresoCurso);
+    const modulos = detalle.modulos.map(fmtModuloDetallado);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        curso: fmt({ ...detalle.curso, modulos_count: String(modulos.length) }),
+        progresoCurso,
+        modulos,
       },
     });
   } catch (err) { next(err); }
