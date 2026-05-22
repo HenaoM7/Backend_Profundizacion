@@ -32,6 +32,22 @@ export const getAll = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+export const validate = async (req, res, next) => {
+  try {
+    // allow query params: id_curso and id_usuario
+    const { id_curso, id_usuario } = req.query;
+    if (!id_curso || !id_usuario) {
+      return res.status(400).json({ success: false, message: 'Se requieren id_curso e id_usuario.' });
+    }
+    if (!UUID_REGEX.test(id_curso) || !UUID_REGEX.test(id_usuario)) {
+      return res.status(400).json({ success: false, message: 'id_curso e id_usuario deben ser UUID válidos.' });
+    }
+
+    const enrolled = await InscripcionModel.exists(id_curso, id_usuario);
+    return res.status(200).json({ success: true, enrolled });
+  } catch (err) { next(err); }
+};
+
 export const getById = async (req, res, next) => {
   try {
     const { id } = req.params;

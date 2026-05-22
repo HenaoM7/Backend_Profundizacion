@@ -51,6 +51,14 @@ export const findById = async (id_inscripcion) => {
   return result.rows[0] ?? null;
 };
 
+export const exists = async (id_curso, id_usuario) => {
+  const query = `
+    SELECT 1 FROM inscripcion WHERE id_curso = $1 AND id_usuario = $2 LIMIT 1
+  `;
+  const result = await pool.query(query, [id_curso, id_usuario]);
+  return result.rows.length > 0;
+};
+
 export const create = async ({ id_curso, id_usuario, fecha_inicio, fecha_finalizacion }) => {
   const query = `
     INSERT INTO inscripcion (id_curso, id_usuario, fecha_inicio, fecha_finalizacion)

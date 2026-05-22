@@ -75,6 +75,44 @@ router.get(
 
 /**
  * @swagger
+ * /api/cursos/{id}/detalle/{id_usuario}:
+ *   get:
+ *     summary: Detalle completo de un curso (módulos, contenidos, progreso del usuario)
+ *     tags: [Cursos]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID del curso (id_curso)
+ *       - in: path
+ *         name: id_usuario
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID del usuario (para ver su progreso)
+ *     responses:
+ *       200:
+ *         description: Curso con módulos, contenidos y progreso del usuario especificado
+ *       403:
+ *         description: El usuario no está inscrito en el curso o no tiene permisos
+ *       404:
+ *         description: Curso no encontrado
+ */
+router.get(
+  '/:id/detalle/:id_usuario',
+  authenticate,
+  authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE, ROLES.ESTUDIANTE),
+  CursoController.getDetalleCompleto
+);
+
+/**
+ * @swagger
  * /api/cursos/{id}:
  *   get:
  *     summary: Detalle de un curso con sus módulos

@@ -42,6 +42,36 @@ router.get('/', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DO
 
 /**
  * @swagger
+ * /api/inscripciones/validar:
+ *   get:
+ *     summary: Verificar si un usuario está inscrito en un curso
+ *     tags: [Inscripciones]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id_curso
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: id_usuario
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Resultado de la verificación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 enrolled: { type: boolean }
+ */
+router.get('/validar', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE, ROLES.ESTUDIANTE), InscripcionController.validate);
+
+/**
+ * @swagger
  * /api/inscripciones/{id}:
  *   get:
  *     summary: Obtener inscripción por id
