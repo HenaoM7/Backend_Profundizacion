@@ -4,17 +4,42 @@ import localFileService from '../../services/archivos/localFileService.js';
 import MaestroDocumento from '../../repositories/MaestroDocumento.js';
 import TipoDocumento from '../../repositories/TipoDocumento.js';
 
+// Debe coincidir con URL_PUBLICA en localFileService.js
+const URL_PUBLICA = 'http://localhost:3000/src/';
+
+/**
+ * Construye la urlPublica a partir de ruta_documento almacenada en BD.
+ * ruta_documento = "documentos/timestamp_nombre.pdf"
+ * urlPublica     = "http://localhost:3000/src/uploads/documentos/timestamp_nombre.pdf"
+ */
+const buildUrlPublica = (rutaDocumento) => {
+    if (!rutaDocumento) return null;
+    return `${URL_PUBLICA}uploads/${rutaDocumento}`;
+};
+
 class DocumentoController {
 
+    // ------------------------------------------------------------------
+    // GET /api/documentos
+    // ------------------------------------------------------------------
     async listar(req, res) {
         try {
             const documentos = await MaestroDocumento.findAllActive();
-            res.json({ success: true, data: documentos, total: documentos.length });
+
+            const data = documentos.map((doc) => ({
+                ...doc,
+                urlPublica: buildUrlPublica(doc.ruta_documento),
+            }));
+
+            res.json({ success: true, data, total: data.length });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
     }
 
+    // ------------------------------------------------------------------
+    // GET /api/documentos/:id
+    // ------------------------------------------------------------------
     async obtener(req, res) {
         try {
             const { id } = req.params;
@@ -24,12 +49,21 @@ class DocumentoController {
                 return res.status(404).json({ success: false, error: 'Documento no encontrado' });
             }
 
-            res.json({ success: true, data: documento });
+            res.json({
+                success: true,
+                data: {
+                    ...documento,
+                    urlPublica: buildUrlPublica(documento.ruta_documento),
+                },
+            });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
     }
 
+    // ------------------------------------------------------------------
+    // GET /api/documentos/:id/descargar
+    // ------------------------------------------------------------------
     async descargar(req, res) {
         try {
             const { id } = req.params;
@@ -42,8 +76,6 @@ class DocumentoController {
                 });
             }
 
-            // ruta_documento = "documentos/1747123456789_archivo.pdf"
-            // Es exactamente el fileId que usa localFileService
             await localFileService.descargarArchivo(documento.ruta_documento, res);
 
         } catch (error) {
@@ -53,6 +85,9 @@ class DocumentoController {
         }
     }
 
+    // ------------------------------------------------------------------
+    // POST /api/documentos
+    // ------------------------------------------------------------------
     async subir(req, res) {
         try {
             if (!req.file) {
@@ -62,14 +97,9 @@ class DocumentoController {
             const { originalname, mimetype, buffer, size } = req.file;
             const { carpeta = 'documentos' } = req.body;
 
-            // 1. Detectar extensión → "pdf" | "docx" | etc.
-            const extension = path.extname(originalname); // ".pdf"
-
-            // 2. Resolver id_tipo_documento desde la tabla
-            //    Si la extensión no existe → retorna el tipo "desconocido"
+            const extension     = path.extname(originalname);
             const tipoDocumento = await TipoDocumento.findByExtension(extension);
 
-            // 3. Subir archivo → fileId = "documentos/timestamp_nombre.pdf"
             const archivoLocal = await localFileService.subirArchivo({
                 nombre  : originalname,
                 mimeType: mimetype,
@@ -77,13 +107,11 @@ class DocumentoController {
                 carpeta,
             });
 
-            // 4. Insertar en maestro_documento
-            //    ruta_documento = fileId devuelto por el servicio (sin prefijos extra)
             const maestro = new MaestroDocumento({
                 id_maestro_documento : randomUUID(),
                 numero_documento     : originalname,
                 id_tipo_documento    : tipoDocumento.id_tipo_documento,
-                ruta_documento       : archivoLocal.id,   // "documentos/timestamp_nombre.pdf"
+                ruta_documento       : archivoLocal.id,
                 tamanno              : size,
                 activo               : true,
             });
@@ -94,7 +122,7 @@ class DocumentoController {
                 success: true,
                 data: {
                     ...maestroGuardado.toJSON(),
-                    tipo_extension: tipoDocumento.nombre,   // "pdf" | "desconocido"
+                    tipo_extension: tipoDocumento.nombre,
                     archivo       : archivoLocal,
                 },
             });
@@ -105,6 +133,9 @@ class DocumentoController {
         }
     }
 
+    // ------------------------------------------------------------------
+    // DELETE /api/documentos/:id
+    // ------------------------------------------------------------------
     async eliminar(req, res) {
         try {
             const { id } = req.params;
@@ -114,10 +145,8 @@ class DocumentoController {
                 return res.status(404).json({ success: false, error: 'Documento no encontrado' });
             }
 
-            // 1. Borrado físico en BD
             await MaestroDocumento.delete(id);
 
-            // 2. Eliminar archivo físico del disco
             try {
                 await localFileService.eliminarArchivo(documento.ruta_documento);
             } catch (fsError) {

@@ -22,12 +22,28 @@ class DocumentoModel {
             carpeta     : this.carpeta,
             createdTime : this.createdTime,
             modifiedTime: this.modifiedTime,
+            urlPublica  : this.urlPublica,
         };
     }
 
-    static fromStat({ carpeta, nombre, stats, mimeType, originalName = null, path: filePath = null }) {
+    /**
+     * @param {object}  params
+     * @param {string}  params.carpeta
+     * @param {string}  params.nombre
+     * @param {object}  params.stats        - resultado de fs.statSync
+     * @param {string}  params.mimeType
+     * @param {string} [params.originalName]
+     * @param {string} [params.path]        - ruta absoluta en disco
+     * @param {string} [params.baseUrl]     - URL base pública, ej: "http://localhost:3000/src/"
+     */
+    static fromStat({ carpeta, nombre, stats, mimeType, originalName = null, path: filePath = null, baseUrl = null }) {
+        const fileId    = `${carpeta}/${nombre}`;
+        const urlPublica = baseUrl
+            ? `${baseUrl}uploads/${fileId}`
+            : null;
+
         return new DocumentoModel({
-            id          : `${carpeta}/${nombre}`,
+            id          : fileId,
             name        : nombre,
             originalName,
             mimeType,
@@ -36,6 +52,7 @@ class DocumentoModel {
             createdTime : stats.birthtime,
             modifiedTime: stats.mtime,
             path        : filePath,
+            urlPublica,
         });
     }
 }

@@ -3,11 +3,12 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import DocumentoModel from '../../models/archivos/documentoModel.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __filename  = fileURLToPath(import.meta.url);
+const __dirname   = path.dirname(__filename);
 
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
 const CARPETAS    = ['documentos', 'imagenes'];
+const URL_PUBLICA = 'http://localhost:3000/src/';
 
 class LocalFileService {
     constructor() {
@@ -34,7 +35,7 @@ class LocalFileService {
     }
 
     // ----------------------------------------------------------------
-    // SUBIR → retorna DocumentoModel
+    // SUBIR → retorna DocumentoModel (sin urlPublica — no es GET)
     // ----------------------------------------------------------------
     async subirArchivo({ nombre, mimeType, buffer, carpeta = 'documentos' }) {
         try {
@@ -53,6 +54,7 @@ class LocalFileService {
                 mimeType,
                 stats,
                 path        : rutaArchivo,
+                // urlPublica no se incluye en la subida
             });
         } catch (error) {
             console.error('Error subiendo archivo:', error.message);
@@ -115,7 +117,7 @@ class LocalFileService {
     }
 
     // ----------------------------------------------------------------
-    // LISTAR → retorna DocumentoModel[]
+    // LISTAR → retorna DocumentoModel[] con urlPublica
     // ----------------------------------------------------------------
     async listarArchivos(carpeta = 'documentos') {
         try {
@@ -134,12 +136,40 @@ class LocalFileService {
                         nombre,
                         mimeType: this._inferirMimeType(nombre),
                         stats,
+                        baseUrl : URL_PUBLICA,   // genera urlPublica en el modelo
                     });
                 });
         } catch (error) {
             console.error('Error listando archivos:', error.message);
             throw error;
         }
+    }
+
+    // ----------------------------------------------------------------
+    // OBTENER metadata de un archivo con urlPublica
+    // ----------------------------------------------------------------
+    async obtenerArchivo(fileId) {
+        const rutaArchivo = path.join(UPLOADS_DIR, fileId);
+
+        if (!rutaArchivo.startsWith(UPLOADS_DIR)) {
+            throw Object.assign(new Error('Ruta no permitida'), { status: 403 });
+        }
+        if (!fs.existsSync(rutaArchivo)) {
+            throw Object.assign(new Error('Archivo no encontrado en disco'), { status: 404 });
+        }
+
+        const stats   = fs.statSync(rutaArchivo);
+        const nombre  = path.basename(rutaArchivo);
+        const carpeta = fileId.split('/')[0];
+
+        return DocumentoModel.fromStat({
+            carpeta,
+            nombre,
+            mimeType: this._inferirMimeType(nombre),
+            stats,
+            path    : rutaArchivo,
+            baseUrl : URL_PUBLICA,   // genera urlPublica en el modelo
+        });
     }
 
     // ----------------------------------------------------------------
