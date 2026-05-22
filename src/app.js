@@ -16,6 +16,7 @@ import validacionRoutes from './routes/validacionRoutes.js';
 import cursoRoutes     from './routes/curso.routes.js';
 import moduloRoutes    from './routes/modulo.routes.js';
 import contenidoRoutes from './routes/contenido.routes.js';
+import inscripcionRoutes from './routes/inscripcion.routes.js';
 import adminDashboardRoutes from './routes/adminDashboardRoutes.js';
 import { startViewRefreshScheduler, stopViewRefreshScheduler } from './utils/viewRefreshScheduler.js';
 
@@ -57,6 +58,7 @@ app.use('/api/cursos',                   cursoRoutes);
 app.use('/api/cursos/:cursoId/modulos',  moduloRoutes);
 app.use('/api/modulos/:moduloId/contenidos', contenidoRoutes);
 app.use('/api/superadmin',               superadminRoutes);
+app.use('/api/inscripciones',            inscripcionRoutes);
 app.use('/api/admin/dashboard',          adminDashboardRoutes);
 
 // Módulo Equipo 5 — Progreso, Validación y Certificados

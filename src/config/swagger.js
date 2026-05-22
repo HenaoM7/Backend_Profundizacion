@@ -60,6 +60,7 @@ Authorization: Bearer <token>
     { name: 'Modulos',         description: 'Gestión de módulos — Equipo 1' },
     { name: 'Contenidos',      description: 'Gestión de contenidos — Equipo 1' },
     { name: 'Teacher',         description: 'Orquestación Vista Docente — Equipo 6' },
+    { name: 'Inscripciones',   description: 'Gestión de inscripciones estudiante-curso — Equipo 7' },
     { name: 'Admin Dashboard', description: 'Reportes del panel administrativo' },
     { name: 'Progreso',        description: '[Equipo 5] Avance del estudiante por contenido y curso; estadísticas académicas' },
     { name: 'Validación',      description: '[Equipo 5] Preguntas booleanas que controlan si un contenido se marca completado' },

@@ -2,11 +2,11 @@
 
 import { query } from '../database/db.js';
 import { UsuariosTotalStats } from '../models/UsuariosTotalStats.js';
-import { UsuariosActivosStats } from '../models/UsuariosActivosStats.js';
+import { UsuariosActivosStats } from '../models/Usuariosactivosstats.js';
 import { UsuariosPorRolStats } from '../models/UsuariosPorRolStats.js';
 import { EstudiantesInscritosStats } from '../models/EstudiantesInscritosStats.js';
 import { EstudiantesCompletadosStats } from '../models/EstudiantesCompletadosStats.js';
-import { CursoTopStats } from '../models/CursoTopStats.js';
+import { CursoTopStats } from '../models/Cursotopstats.js';
 
 export const getTotalUsuarios = async (adminId) => {
   const result = await query(

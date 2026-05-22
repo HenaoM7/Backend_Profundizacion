@@ -1,74 +1,60 @@
-import { query } from '../../database/db.js';
-
 class DocumentoModel {
 
-  // Obtener todos los documentos
-  static async getAll() {
-    const sql = `
-      SELECT id, nombre, drive_id, mime_type, tamanio, carpeta_id, creado_en
-      FROM documentos
-      WHERE activo = true
-      ORDER BY creado_en DESC
-    `;
-    const result = await query(sql);
-    return result.rows;
-  }
+    constructor(data = {}) {
+        this.id           = data.id;
+        this.name         = data.name;
+        this.originalName = data.originalName || null;
+        this.mimeType     = data.mimeType;
+        this.size         = data.size;
+        this.carpeta      = data.carpeta;
+        this.createdTime  = data.createdTime  || null;
+        this.modifiedTime = data.modifiedTime || null;
+        this.path         = data.path         || null;  // solo uso interno, no se expone en API
+    }
 
-  // Obtener documento por ID interno (PostgreSQL)
-  static async getById(id) {
-    const sql = `
-      SELECT id, nombre, drive_id, mime_type, tamanio, carpeta_id, creado_en
-      FROM documentos
-      WHERE id = $1 AND activo = true
-    `;
-    const result = await query(sql, [id]);
-    return result.rows[0] || null;
-  }
+    toJSON() {
+        return {
+            id          : this.id,
+            name        : this.name,
+            originalName: this.originalName,
+            mimeType    : this.mimeType,
+            size        : this.size,
+            carpeta     : this.carpeta,
+            createdTime : this.createdTime,
+            modifiedTime: this.modifiedTime,
+            urlPublica  : this.urlPublica,
+        };
+    }
 
-  // Obtener documento por drive_id
-  static async getByDriveId(driveId) {
-    const sql = `
-      SELECT id, nombre, drive_id, mime_type, tamanio, carpeta_id, creado_en
-      FROM documentos
-      WHERE drive_id = $1 AND activo = true
-    `;
-    const result = await query(sql, [driveId]);
-    return result.rows[0] || null;
-  }
+    /**
+     * @param {object}  params
+     * @param {string}  params.carpeta
+     * @param {string}  params.nombre
+     * @param {object}  params.stats        - resultado de fs.statSync
+     * @param {string}  params.mimeType
+     * @param {string} [params.originalName]
+     * @param {string} [params.path]        - ruta absoluta en disco
+     * @param {string} [params.baseUrl]     - URL base pública, ej: "http://localhost:3000/src/"
+     */
+    static fromStat({ carpeta, nombre, stats, mimeType, originalName = null, path: filePath = null, baseUrl = null }) {
+        const fileId    = `${carpeta}/${nombre}`;
+        const urlPublica = baseUrl
+            ? `${baseUrl}uploads/${fileId}`
+            : null;
 
-  // Guardar registro de documento nuevo
-  static async create({ nombre, driveId, mimeType, tamanio, carpetaId }) {
-    const sql = `
-      INSERT INTO documentos (nombre, drive_id, mime_type, tamanio, carpeta_id)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, nombre, drive_id, creado_en
-    `;
-    const result = await query(sql, [nombre, driveId, mimeType, tamanio, carpetaId]);
-    return result.rows[0];
-  }
-
-  // Eliminar (soft delete)
-  static async delete(id) {
-    const sql = `
-      UPDATE documentos SET activo = false
-      WHERE id = $1
-      RETURNING id
-    `;
-    const result = await query(sql, [id]);
-    return result.rows[0] || null;
-  }
-
-  // Buscar por nombre
-  static async search(termino) {
-    const sql = `
-      SELECT id, nombre, drive_id, mime_type, tamanio, creado_en
-      FROM documentos
-      WHERE activo = true AND nombre ILIKE $1
-      ORDER BY nombre
-    `;
-    const result = await query(sql, [`%${termino}%`]);
-    return result.rows;
-  }
+        return new DocumentoModel({
+            id          : fileId,
+            name        : nombre,
+            originalName,
+            mimeType,
+            size        : stats.size,
+            carpeta,
+            createdTime : stats.birthtime,
+            modifiedTime: stats.mtime,
+            path        : filePath,
+            urlPublica,
+        });
+    }
 }
 
 export default DocumentoModel;
