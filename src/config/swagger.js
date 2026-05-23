@@ -4,6 +4,7 @@ const STUDENT_ID   = 'fdb51787-747c-4c2c-8ed7-2bc9ebc62145';
 const DOCENTE_ID   = 'c98d3456-0899-4ce7-ad4d-ed3f69095c77';
 const ADMIN_ID     = 'f821425b-0e37-47d4-898e-c47d7ff98658';
 const SA_ID        = '0b36846d-c1e9-4d67-a7b6-043638b3112d';
+const MODULE_ID    = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const COURSE_ID    = '2346196f-091b-4cb3-beb8-128bca3ad069';
 const CONTENT_ID   = 'c1111111-0000-0000-0000-000000000001';
 const CERT_ID      = '626491ee-21ee-497e-a441-d35794c64ddc';
