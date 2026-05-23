@@ -329,9 +329,10 @@ const _buildCertificado = async (userId, courseId) => {
     userId,
     courseId,
     url,
-    nombreEstudiante: datos?.nombre_estudiante ?? null,
-    nombreCurso:      datos?.nombre_curso      ?? null,
+    nombreEstudiante:   datos?.nombre_estudiante ?? null,
+    nombreCurso:        datos?.nombre_curso      ?? null,
     htmlRenderizado,
+    codigoVerificacion,
   });
 };
 

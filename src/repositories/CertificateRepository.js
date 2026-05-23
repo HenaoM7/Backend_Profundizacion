@@ -2,13 +2,13 @@ import { query }              from '../database/db.js';
 import { Certificate }         from '../models/Certificate.js';
 import { PlantillaCertificado } from '../models/PlantillaCertificado.js';
 
-export const save = async ({ userId, courseId, url, nombreEstudiante, nombreCurso, htmlRenderizado }) => {
+export const save = async ({ userId, courseId, url, nombreEstudiante, nombreCurso, htmlRenderizado, codigoVerificacion }) => {
   const result = await query(
     `INSERT INTO certificado
-       (id_usuario, id_curso, url, nombre_estudiante, nombre_curso, html_renderizado)
-     VALUES ($1, $2, $3, $4, $5, $6)
+       (id_usuario, id_curso, url, nombre_estudiante, nombre_curso, html_renderizado, codigo_verificacion)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [userId, courseId, url, nombreEstudiante ?? null, nombreCurso ?? null, htmlRenderizado ?? null]
+    [userId, courseId, url, nombreEstudiante ?? null, nombreCurso ?? null, htmlRenderizado ?? null, codigoVerificacion ?? null]
   );
   return Certificate.fromRow(result.rows[0]);
 };
