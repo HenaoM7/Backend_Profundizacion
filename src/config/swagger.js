@@ -66,6 +66,9 @@ Authorization: Bearer <token>
     { name: 'Progreso',        description: '[Equipo 5] Avance del estudiante por contenido y curso; estadísticas académicas' },
     { name: 'Validación',      description: '[Equipo 5] Preguntas booleanas que controlan si un contenido se marca completado' },
     { name: 'Certificados',    description: '[Equipo 5] Plantillas HTML, generación y descarga de certificados de finalización' },
+    { name: 'Notas',           description: 'Gestión de calificaciones por módulo y curso' },
+    { name: 'Evaluaciones',    description: 'Envío de respuestas con corrección automática y creación de nota' },
+    { name: 'Reportes',        description: 'Reportes académicos y de negocio sobre vistas PostgreSQL (Equipo 9)' },
   ],
   components: {
     securitySchemes: {
@@ -665,6 +668,297 @@ La fecha de primera descarga (\`descargadoEn\`) es inmutable.
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid', example: CERT_ID }, description: 'UUID del certificado.' }],
         responses: {
           200: { description: 'HTML descargable del certificado.', content: { 'text/html': { schema: { type: 'string' } } } },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    // ── Evaluaciones ──────────────────────────────────────────────────────────
+    '/evaluaciones/contenido/{id_contenido}/responder': {
+      post: {
+        tags: ['Evaluaciones'],
+        summary: 'Responder evaluación de un contenido',
+        description: `El estudiante envía sus respuestas para todas las preguntas de la evaluación de un contenido.
+
+El sistema:
+1. Verifica que el estudiante no haya respondido antes esta evaluación (única por usuario/evaluación)
+2. Valida que cada opción seleccionada pertenece a su pregunta
+3. Calcula la calificación: *(puntaje_correctas / puntaje_total) × 100*
+4. **Crea automáticamente una nota** con la calificación obtenida en el módulo del contenido
+
+**Roles permitidos:** Estudiante, Admin`,
+        parameters: [
+          {
+            name: 'id_contenido', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            description: 'UUID del contenido que contiene la evaluación.',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/EvaluacionRespuestaRequest' },
+              example: {
+                respuestas: [
+                  { idEvaluacion: 1, idOpcion: 2 },
+                  { idEvaluacion: 2, idOpcion: 5 },
+                  { idEvaluacion: 3, idOpcion: 7 },
+                ],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Evaluación respondida. Nota creada automáticamente.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    nota: {
+                      id: 'uuid-nota',
+                      userId: STUDENT_ID,
+                      courseId: COURSE_ID,
+                      moduleId: MODULE_ID,
+                      score: 75,
+                      numeroIntento: 1,
+                    },
+                    calificacion:    75,
+                    puntajeObtenido: 15,
+                    puntajeTotal:    20,
+                    detalle: [
+                      { idEvaluacion: 1, enunciado: '¿Qué es un componente en React?', esCorrecta: true,  puntaje: 10 },
+                      { idEvaluacion: 2, enunciado: '¿Qué hace useState?',             esCorrecta: false, puntaje: 10 },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: {
+            description: 'Contenido o evaluación no encontrado.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'No se encontraron preguntas para este contenido.' },
+              },
+            },
+          },
+          409: {
+            description: 'El estudiante ya respondió esta evaluación.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { success: false, message: 'Ya respondiste la evaluación de este contenido.' },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // ── Reportes ──────────────────────────────────────────────────────────────
+    '/api/reportes/cursos-populares': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Cursos más populares por inscritos',
+        description: `Retorna los cursos ordenados de mayor a menor número de inscritos (solo cursos no eliminados).\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'curso_id', in: 'query', required: false,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'Filtra la respuesta a un único curso.',
+          },
+        ],
+        responses: {
+          200: { description: 'Lista de cursos con total de inscritos.' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/api/reportes/inscripciones-por-periodo': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Inscripciones por período',
+        description: `Agrupa inscripciones por el período indicado. Para modos de palabra clave el año se toma automáticamente del año actual y **siempre** se devuelven todas las filas aunque estén en 0.
+
+**Modos disponibles:**
+- \`mensual\` → 12 filas (Enero – Diciembre del año actual)
+- \`trimestral\` → 4 filas (T1 – T4 del año actual)
+- \`semestral\` → 2 filas (1S – 2S del año actual)
+- \`anual\` → 1 fila (total del año actual)
+- \`custom\` → requiere \`fecha_inicio\` y \`fecha_fin\`, agrupa por mes dentro del rango
+
+**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'agrupacion', in: 'query', required: false,
+            schema: { type: 'string', enum: ['mensual', 'trimestral', 'semestral', 'anual', 'custom'], example: 'mensual' },
+            description: 'Tipo de agrupación. Si se omite o es "custom" se requieren fecha_inicio y fecha_fin.',
+          },
+          {
+            name: 'fecha_inicio', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-01-01' },
+            description: 'Obligatorio cuando agrupacion=custom. Formato YYYY-MM-DD.',
+          },
+          {
+            name: 'fecha_fin', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-06-30' },
+            description: 'Obligatorio cuando agrupacion=custom. Formato YYYY-MM-DD.',
+          },
+          {
+            name: 'curso_id', in: 'query', required: false,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'Filtra las inscripciones a un único curso.',
+          },
+        ],
+        responses: {
+          200: { description: 'Inscripciones agrupadas por período.' },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/api/reportes/intentos-por-modulo': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Promedio de intentos para aprobar por módulo',
+        description: `Muestra el promedio de intentos que los estudiantes necesitan para aprobar cada módulo.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'curso_id', in: 'query', required: false,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'Filtra los módulos pertenecientes a ese curso.',
+          },
+          {
+            name: 'fecha_inicio', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-01-01' },
+            description: 'Filtra módulos cuyo último intento sea igual o posterior a esta fecha. Formato YYYY-MM-DD.',
+          },
+          {
+            name: 'fecha_fin', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-06-30' },
+            description: 'Filtra módulos cuyo último intento sea igual o anterior a esta fecha. Formato YYYY-MM-DD.',
+          },
+        ],
+        responses: {
+          200: { description: 'Promedio de intentos por módulo.' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/api/reportes/tasa-aprobacion': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Tasa de completitud por curso',
+        description: `Muestra cuántos estudiantes completaron y no completaron cada curso, junto con el porcentaje de completitud.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        parameters: [
+          {
+            name: 'curso_id', in: 'query', required: false,
+            schema: { type: 'string', format: 'uuid', example: COURSE_ID },
+            description: 'Filtra la respuesta a un único curso.',
+          },
+          {
+            name: 'fecha_inicio', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-01-01' },
+            description: 'Filtra cursos cuya inscripción más reciente sea igual o posterior a esta fecha. Formato YYYY-MM-DD.',
+          },
+          {
+            name: 'fecha_fin', in: 'query', required: false,
+            schema: { type: 'string', format: 'date', example: '2026-06-30' },
+            description: 'Filtra cursos cuya inscripción más reciente sea igual o anterior a esta fecha. Formato YYYY-MM-DD.',
+          },
+        ],
+        responses: {
+          200: { description: 'Tasa de completitud por curso.' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/api/reportes/cursos-activos-vs-inactivos': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Cursos activos vs inactivos',
+        description: `Resumen global: total de cursos no eliminados, cuántos están activos y cuántos inactivos.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        responses: {
+          200: { description: 'Comparativo de cursos activos vs inactivos.' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/api/reportes/certificados': {
+      get: {
+        tags: ['Reportes'],
+        summary: 'Certificados emitidos vs descargados',
+        description: `Resumen global: total de certificados emitidos, cuántos fueron descargados y el porcentaje de descarga.\n\n**Roles permitidos:** Admin, SuperAdmin`,
+        responses: {
+          200: { description: 'Comparativo de certificados emitidos vs descargados.' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          503: { description: 'Vista de BD no disponible.' },
+        },
+      },
+    },
+
+    '/evaluaciones/contenido/{id_contenido}/resultado/{userId}': {
+      get: {
+        tags: ['Evaluaciones'],
+        summary: 'Resultado de evaluación de un estudiante',
+        description: `Retorna el detalle del resultado de un estudiante en la evaluación de un contenido, incluyendo puntaje y calificación.
+
+**Roles permitidos:** Admin, SuperAdmin, Docente (cualquier estudiante) · Estudiante (solo el propio)`,
+        parameters: [
+          {
+            name: 'id_contenido', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: CONTENT_ID },
+            description: 'UUID del contenido.',
+          },
+          {
+            name: 'userId', in: 'path', required: true,
+            schema: { type: 'string', format: 'uuid', example: STUDENT_ID },
+            description: 'UUID del estudiante.',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Resultado de la evaluación.',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    userId:          STUDENT_ID,
+                    idContenido:     CONTENT_ID,
+                    calificacion:    75,
+                    puntajeObtenido: 15,
+                    puntajeTotal:    20,
+                  },
+                },
+              },
+            },
+          },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
           404: { $ref: '#/components/responses/NotFound' },
