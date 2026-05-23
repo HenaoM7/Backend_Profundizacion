@@ -56,6 +56,7 @@ Authorization: Bearer <token>
     { name: 'Sistema',         description: 'Estado y salud de la API' },
     { name: 'Autenticacion',   description: 'Login y obtención de usuario autenticado' },
     { name: 'SuperAdmin',      description: 'Gestión y vista de usuarios (solo SuperAdmin)' },
+    { name: 'Institución',     description: 'Configuración visual y branding de la institución' },
     { name: 'Cursos',          description: 'Gestión de cursos — Equipo 1' },
     { name: 'Modulos',         description: 'Gestión de módulos — Equipo 1' },
     { name: 'Contenidos',      description: 'Gestión de contenidos — Equipo 1' },
@@ -673,5 +674,21 @@ La fecha de primera descarga (\`descargadoEn\`) es inmutable.
   },
 };
 
-const swaggerSpec = swaggerJsdoc({ definition, apis: [] });
+const swaggerSpec = swaggerJsdoc({
+  definition,
+  apis: [
+    './src/routes/teacher.routes.js',
+    './src/routes/curso.routes.js',
+    './src/routes/authRoutes.js',
+    './src/routes/superadminRoutes.js',
+    './src/routes/modulo.routes.js',
+    './src/routes/contenido.routes.js',
+    './src/routes/adminDashboardRoutes.js',
+    './src/routes/institucionRoutes.js',
+    './src/routes/certificateRoutes.js',
+    './src/routes/progresoRoutes.js',
+    './src/routes/validacionRoutes.js',
+    './src/routes/archivos/documentosRouter.js'
+  ],
+});
 export default swaggerSpec;

@@ -1,5 +1,5 @@
--- Migración: Crear vista materializada de métricas mensuales del dashboard
--- Descripción: Precalcula métricas mensuales complejas para mejorar performance
+-- Migración: Recrear vista materializada de métricas mensuales con fix
+-- Descripción: Recreate v_dashboard_metricas_mensuales con SUM para contar sesiones totales
 
 CREATE MATERIALIZED VIEW v_dashboard_metricas_mensuales AS
 WITH current_month_dates AS (
@@ -18,14 +18,14 @@ prev_month_dates AS (
 ),
 sesiones_mes AS (
   SELECT 
-    COUNT(DISTINCT u.id_usuario)::int as este_mes
+    SUM(jsonb_array_length(u.accesos_mes_actual))::int as este_mes
   FROM usuario u
   WHERE u.accesos_mes_actual IS NOT NULL 
     AND u.accesos_mes_actual::text != '[]'::text
 ),
 sesiones_mes_anterior AS (
   SELECT 
-    COUNT(DISTINCT u.id_usuario)::int as mes_anterior
+    SUM(jsonb_array_length(u.accesos_mes_anterior))::int as mes_anterior
   FROM usuario u
   WHERE u.accesos_mes_anterior IS NOT NULL 
     AND u.accesos_mes_anterior::text != '[]'::text
@@ -219,7 +219,7 @@ SELECT
   ) as tendencias_semana
 FROM (SELECT 1) dummy;
 
--- Crear índice para faster refreshes
+-- Crear índices
 CREATE INDEX IF NOT EXISTS idx_usuario_accesos_ultimos_7dias 
   ON usuario (id_usuario) 
   WHERE accesos_ultimos_7dias IS NOT NULL;
