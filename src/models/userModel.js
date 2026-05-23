@@ -11,6 +11,9 @@ const baseUserSelect = `
     u.creacion,
     u.actualizacion,
     u.ultimo_acceso,
+    u.accesos_mes_actual,
+    u.accesos_mes_anterior,
+    u.accesos_ultimos_7dias,
     COALESCE(ARRAY_REMOVE(ARRAY_AGG(r.nombre ORDER BY r.nombre), NULL), '{}') AS roles
   FROM usuario u
   LEFT JOIN usuario_rol ur ON ur.id_usuario = u.id_usuario
@@ -128,7 +131,7 @@ export const createUser = async ({ id, nombre, correo, passwordHash, createdBy, 
   }
 };
 
-export const updateUser = async ({ id, nombre, roleIds }) => {
+export const updateUser = async ({ id, nombre, roleIds, passwordHash }) => {
   const client = await getClient();
 
   try {
@@ -143,6 +146,18 @@ export const updateUser = async ({ id, nombre, roleIds }) => {
           WHERE id_usuario = $2
         `,
         [nombre, id]
+      );
+    }
+
+    // Actualizar contraseña si se proporciona
+    if (passwordHash) {
+      await client.query(
+        `
+          UPDATE usuario
+          SET contrasena = $1, actualizacion = NOW()
+          WHERE id_usuario = $2
+        `,
+        [passwordHash, id]
       );
     }
 
@@ -162,8 +177,8 @@ export const updateUser = async ({ id, nombre, roleIds }) => {
         );
       }
 
-      // Actualizar timestamp si se cambiaron roles
-      if (!nombre) {
+      // Actualizar timestamp si se cambiaron roles y no se actualizó nombre o contraseña
+      if (!nombre && !passwordHash) {
         await client.query(
           `
             UPDATE usuario

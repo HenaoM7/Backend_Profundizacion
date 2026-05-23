@@ -28,6 +28,9 @@ export const sanitizeUser = (user) => {
     creacion: user.creacion,
     actualizacion: user.actualizacion,
     ultimoAcceso: user.ultimo_acceso || null,
+    accesosMesActual: user.accesos_mes_actual || [],
+    accesosMesAnterior: user.accesos_mes_anterior || [],
+    accesosUltimos7dias: user.accesos_ultimos_7dias || [],
   };
 };
 
@@ -80,7 +83,13 @@ export const createUser = async ({ nombre, correo, contrasena, roleNames, actorR
   };
 };
 
-export const updateUser = async ({ id, nombre, roleNames, actorRoles }) => {
+export const updateUser = async ({ id, nombre, roleNames, contrasena, actorRoles }) => {
+  // Verificar que el actor es Admin o SuperAdmin
+  const canModifyUser = actorRoles.includes('Admin') || actorRoles.includes('SuperAdmin');
+  if (!canModifyUser) {
+    return { errorCode: 'USER_EDIT_NOT_ALLOWED' };
+  }
+
   // Verificar que el usuario existe
   const targetUser = await findUserById(id, { onlyActive: false });
 
@@ -94,7 +103,12 @@ export const updateUser = async ({ id, nombre, roleNames, actorRoles }) => {
     return { errorCode: 'CANNOT_MODIFY_SUPERADMIN' };
   }
 
-  // Validar permisos de asignación de roles si se están cambiando
+  let passwordHash;
+  if (contrasena !== undefined) {
+    passwordHash = await bcrypt.hash(contrasena, 10);
+  }
+
+  let roleIds;
   if (roleNames && roleNames.length > 0) {
     if (!canAssignAllRoles(actorRoles, roleNames)) {
       return { errorCode: 'ROLE_ASSIGNMENT_NOT_ALLOWED' };
@@ -105,14 +119,15 @@ export const updateUser = async ({ id, nombre, roleNames, actorRoles }) => {
       return { errorCode: 'INVALID_ROLES' };
     }
 
-    await updateUserRecord({
-      id,
-      nombre,
-      roleIds: roles.map((role) => role.id_rol),
-    });
-  } else if (nombre) {
-    await updateUserRecord({ id, nombre });
+    roleIds = roles.map((role) => role.id_rol);
   }
+
+  await updateUserRecord({
+    id,
+    nombre,
+    roleIds,
+    passwordHash,
+  });
 
   const updatedUser = await findUserById(id, { onlyActive: false });
 
@@ -159,7 +174,12 @@ export const activateUser = async (id) => {
   return { success: true };
 };
 
-export const setUserActiveStatus = async (id, activo) => {
+export const setUserActiveStatus = async (id, activo, actorRoles = []) => {
+  const canModifyUser = actorRoles.includes('Admin') || actorRoles.includes('SuperAdmin');
+  if (!canModifyUser) {
+    return { errorCode: 'USER_EDIT_NOT_ALLOWED' };
+  }
+
   const targetUser = await findUserById(id, { onlyActive: false });
 
   if (!targetUser) {

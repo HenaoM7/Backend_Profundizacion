@@ -1,9 +1,9 @@
-import * as progresoRepo             from '../repositories/ProgresoRepository.js';
-import * as gradeRepository          from '../repositories/GradeRepository.js';
-import { generateCertificateAutomatico } from './CertificateService.js';
-import { getClient }  from '../database/db.js';
+import * as progresoRepo               from '../repositories/ProgresoRepository.js';
+import * as validacionRepo              from '../repositories/ValidacionRepository.js';
+import { generateCertificadoAutomatico } from './CertificateService.js';
+import { getClient }                    from '../database/db.js';
 
-export const completarContenido = async (userId, idContenido) => {
+export const completarContenidoValidado = async (userId, idContenido) => {
   const contenido = await progresoRepo.findContenidoConContexto(idContenido);
 
   if (!contenido) {
@@ -11,6 +11,9 @@ export const completarContenido = async (userId, idContenido) => {
   }
   if (!contenido.activo) {
     throw { status: 400, message: 'El contenido no está activo.' };
+  }
+  if (!contenido.modulo_activo) {
+    throw { status: 400, message: 'El módulo al que pertenece este contenido no está activo.' };
   }
 
   const yaCompleto = await progresoRepo.yaCompleto(userId, idContenido);
@@ -24,7 +27,7 @@ export const completarContenido = async (userId, idContenido) => {
   try {
     await client.query('BEGIN');
 
-    await progresoRepo.saveProgresoContenido(userId, idCurso, idContenido);
+    await progresoRepo.saveProgresoContenido(userId, idCurso, idContenido, contenido.id_modulo);
 
     const { total, completados } = await progresoRepo.contarContenidos(userId, idCurso);
 
@@ -48,34 +51,23 @@ export const completarContenido = async (userId, idContenido) => {
 
     await client.query('COMMIT');
 
-    let nota        = null;
     let certificado = null;
-
     if (completado) {
-      nota = await gradeRepository.save({
-        userId,
-        courseId:    idCurso,
-        moduleId:    contenido.id_modulo,
-        score:       100,
-        evaluacionId: null,
-      });
-
-      certificado = await generateCertificateAutomatico(userId, idCurso);
+      certificado = await generateCertificadoAutomatico(userId, idCurso);
     }
 
     return {
       progreso,
       contenido: {
-        id:           contenido.id_contenido,
-        modulo:       contenido.titulo_modulo,
-        curso:        contenido.titulo_curso,
+        id:     contenido.id_contenido,
+        modulo: contenido.titulo_modulo,
+        curso:  contenido.titulo_curso,
       },
       porcentaje,
       contenidosCompletados: completados,
       totalContenidos:       total,
       completado,
       aprobado: completado,
-      nota,
       certificado,
     };
   } catch (err) {
@@ -105,12 +97,37 @@ export const getProgresoCurso = async (userId, courseId) => {
   return progreso;
 };
 
-
 export const getProgresoCursoTodos = async (courseId) => {
   return progresoRepo.findProgresoCursoTodos(courseId);
 };
 
-
 export const getMisCursos = async (userId) => {
   return progresoRepo.findMisCursos(userId);
+};
+
+export const getProgresoDetalleModulos = async (userId, courseId) => {
+  const modulos = await progresoRepo.findProgresoDetalleModulos(userId, courseId);
+  return { idUsuario: userId, idCurso: courseId, modulos };
+};
+
+export const getEstadisticasCurso = async (idCurso) => {
+  const [resumen, ranking, contenidosFallo] = await Promise.all([
+    progresoRepo.findEstadisticasCurso(idCurso),
+    progresoRepo.findRankingCurso(idCurso),
+    validacionRepo.findTasaFalloByCurso(idCurso),
+  ]);
+
+  return {
+    idCurso,
+    porcentaje_promedio:     resumen?.porcentaje_promedio     ?? 0,
+    total_estudiantes:       resumen?.total_estudiantes       ?? 0,
+    estudiantes_completados: resumen?.estudiantes_completados ?? 0,
+    estudiantes_pendientes:  resumen?.estudiantes_pendientes  ?? 0,
+    ranking,
+    contenidos_mayor_fallo:  contenidosFallo,
+  };
+};
+
+export const getEstadisticasGlobal = async () => {
+  return progresoRepo.findEstadisticasGlobal();
 };
