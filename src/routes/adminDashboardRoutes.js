@@ -1,7 +1,6 @@
-
 import { Router } from 'express';
-import authenticate from '../middleware/auth.js';
-import { authorize, ROLES } from '../middleware/roleGuard.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import { MOCK_TOKENS } from '../config/constants.js';
 import {
   getTotalUsuarios,
   getUsuariosActivos,
@@ -13,6 +12,40 @@ import {
 } from '../controllers/adminDashboardController.js';
 
 const router = Router();
+
+const hybridAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7).trim();
+    const mockUser = MOCK_TOKENS[token];
+
+    if (mockUser) {
+      req.user = mockUser;
+      return next();
+    }
+  }
+
+  return authMiddleware(req, res, next);
+};
+
+const authorizeAdminDashboard = (req, res, next) => {
+  const roles = Array.isArray(req.auth?.roles) ? req.auth.roles : [];
+  const mockRole = req.user?.role;
+  const allowed =
+    roles.includes('Admin') ||
+    roles.includes('SuperAdmin') ||
+    mockRole === 'Admin' ||
+    mockRole === 'SuperAdmin';
+
+  if (!allowed) {
+    return res.status(403).json({
+      message: 'Acceso denegado. Rol requerido: Admin o SuperAdmin.',
+    });
+  }
+
+  return next();
+};
 
 /**
  * @openapi
@@ -36,7 +69,7 @@ const router = Router();
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/usuarios-total', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getTotalUsuarios);
+router.get('/usuarios-total', hybridAuth, authorizeAdminDashboard, getTotalUsuarios);
 
 /**
  * @openapi
@@ -60,7 +93,7 @@ router.get('/usuarios-total', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_A
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/usuarios-activos', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getUsuariosActivos);
+router.get('/usuarios-activos', hybridAuth, authorizeAdminDashboard, getUsuariosActivos);
 
 /**
  * @openapi
@@ -88,7 +121,7 @@ router.get('/usuarios-activos', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/usuarios-por-rol', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getUsuariosPorRol);
+router.get('/usuarios-por-rol', hybridAuth, authorizeAdminDashboard, getUsuariosPorRol);
 
 /**
  * @openapi
@@ -112,7 +145,7 @@ router.get('/usuarios-por-rol', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/estudiantes-inscritos', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getEstudiantesInscritos);
+router.get('/estudiantes-inscritos', hybridAuth, authorizeAdminDashboard, getEstudiantesInscritos);
 
 /**
  * @openapi
@@ -136,7 +169,7 @@ router.get('/estudiantes-inscritos', authenticate, authorize(ROLES.ADMIN, ROLES.
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/estudiantes-completados', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getEstudiantesCompletados);
+router.get('/estudiantes-completados', hybridAuth, authorizeAdminDashboard, getEstudiantesCompletados);
 
 /**
  * @openapi
@@ -166,7 +199,7 @@ router.get('/estudiantes-completados', authenticate, authorize(ROLES.ADMIN, ROLE
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/top-cursos-inscritos', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getTopCursosInscritos);
+router.get('/top-cursos-inscritos', hybridAuth, authorizeAdminDashboard, getTopCursosInscritos);
 
 /**
  * @openapi
@@ -196,6 +229,6 @@ router.get('/top-cursos-inscritos', authenticate, authorize(ROLES.ADMIN, ROLES.S
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/top-cursos-completados', authenticate, authorize(ROLES.ADMIN, ROLES.SUPER_ADMIN), getTopCursosCompletados);
+router.get('/top-cursos-completados', hybridAuth, authorizeAdminDashboard, getTopCursosCompletados);
 
 export default router;

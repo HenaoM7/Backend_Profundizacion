@@ -1,5 +1,3 @@
-
-
 import {
   getTotalUsuariosService,
   getUsuariosActivosService,
@@ -12,7 +10,10 @@ import {
 
 export const getTotalUsuarios = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getTotalUsuariosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -22,7 +23,10 @@ export const getTotalUsuarios = async (req, res, next) => {
 
 export const getUsuariosActivos = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getUsuariosActivosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -32,7 +36,10 @@ export const getUsuariosActivos = async (req, res, next) => {
 
 export const getUsuariosPorRol = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getUsuariosPorRolService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -42,7 +49,10 @@ export const getUsuariosPorRol = async (req, res, next) => {
 
 export const getEstudiantesInscritos = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getEstudiantesInscritosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -52,7 +62,10 @@ export const getEstudiantesInscritos = async (req, res, next) => {
 
 export const getEstudiantesCompletados = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getEstudiantesCompletadosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -62,7 +75,10 @@ export const getEstudiantesCompletados = async (req, res, next) => {
 
 export const getTopCursosInscritos = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getTopCursosInscritosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
@@ -72,7 +88,10 @@ export const getTopCursosInscritos = async (req, res, next) => {
 
 export const getTopCursosCompletados = async (req, res, next) => {
   try {
-    const adminId = req.user.userId;
+    const adminId = req.auth?.sub ?? req.user?.userId;
+    if (!adminId) {
+      return res.status(401).json({ message: 'No autenticado.' });
+    }
     const data = await getTopCursosCompletadosService(adminId);
     return res.status(200).json({ ok: true, data });
   } catch (error) {
