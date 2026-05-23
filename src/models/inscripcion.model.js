@@ -96,3 +96,33 @@ export const remove = async (id_inscripcion) => {
   return result.rows[0] ?? null;
 };
 
+export const findCursosInscritosPorUsuario = async (id_usuario) => {
+  const query = `
+    SELECT 
+      i.id_inscripcion,
+      i.fecha_inicio AS inscripcion_fecha_inicio,
+      i.fecha_finalizacion AS inscripcion_fecha_finalizacion,
+      c.id_curso,
+      c.id_usuario AS id_creador_curso,
+      c.titulo,
+      c.descripcion,
+      c.activo AS curso_activo,
+      c.creacion AS curso_creacion,
+      -- Traemos el progreso si existe, si no, devolvemos 0/false
+      COALESCE(p.porcentaje, 0) AS porcentaje_progreso,
+      COALESCE(p.contenidos_completados, 0) AS contenidos_completados,
+      COALESCE(p.total_contenidos, 0) AS modulos_total,
+      COALESCE(p.completado, false) AS completado,
+      COALESCE(p.aprobado, false) AS aprobado
+    FROM inscripcion i
+    INNER JOIN curso c ON i.id_curso = c.id_curso
+    LEFT JOIN progreso_curso p ON p.id_curso = c.id_curso AND p.id_usuario = i.id_usuario
+    WHERE i.id_usuario = $1
+      AND c.eliminacion IS NULL -- Solo cursos que no hayan sido eliminados lógicamente
+    ORDER BY i.fecha_inicio DESC
+  `;
+
+  const result = await pool.query(query, [id_usuario]);
+  return result.rows;
+};
+

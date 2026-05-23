@@ -113,7 +113,7 @@ router.get('/:id', authorizePermissions(['usuarios.ver']), getUser);
  * @openapi
  * /api/users/{id}:
  *   put:
- *     summary: Edita un usuario (nombre y/o roles). SuperAdmin no puede ser editado.
+ *     summary: Edita un usuario (nombre, roles y/o contraseña). Solo Admin o SuperAdmin pueden editar usuarios. SuperAdmin no puede ser editado.
  *     tags: [Usuarios]
  *     security:
  *       - BearerAuth: []
@@ -136,6 +136,8 @@ router.get('/:id', authorizePermissions(['usuarios.ver']), getUser);
  *                 type: array
  *                 items:
  *                   type: string
+ *               contrasena:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Usuario actualizado correctamente.
@@ -152,7 +154,7 @@ router.put('/:id', authorizePermissions(['usuarios.editar']), editUser);
  * @openapi
  * /api/users/{id}/activo:
  *   patch:
- *     summary: Activa o desactiva un usuario según el valor de "activo".
+ *     summary: Activa o desactiva un usuario según el valor de "activo". Solo Admin o SuperAdmin pueden hacerlo.
  *     tags: [Usuarios]
  *     security:
  *       - BearerAuth: []

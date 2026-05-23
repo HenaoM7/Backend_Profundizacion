@@ -3,6 +3,7 @@ import * as progresoController    from '../controllers/grades/ProgresoController
 import * as validacionController  from '../controllers/grades/ValidacionController.js';
 import authenticate               from '../middleware/auth.js';
 import { authorize, ROLES }       from '../middleware/roleGuard.js';
+import * as ProgresoController from "../controllers/progreso.controller.js";
 
 const router = Router();
 
@@ -53,6 +54,24 @@ router.get(
   authenticate,
   authorize(ROLES.ESTUDIANTE, ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.DOCENTE),
   progresoController.getProgresoCurso
+);
+
+/**
+ * @swagger
+ * /progreso/contenido/{idContenido}/completar:
+ *   post:
+ *     summary: Marca un contenido como completado y actualiza el progreso del curso
+ *     tags: [Progreso]
+ *     security:
+ *       - BearerAuth: []
+ * ...
+ */
+router.post(
+    '/contenido/:idContenido/completar',
+    authenticate,
+    // ¡AQUÍ ESTÁ EL PERMISO DEL ESTUDIANTE!
+    authorize(ROLES.ESTUDIANTE, ROLES.SUPER_ADMIN, ROLES.ADMIN),
+    ProgresoController.completarContenido
 );
 
 export default router;

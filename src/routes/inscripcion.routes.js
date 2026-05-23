@@ -162,7 +162,38 @@ router.put('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES
  *       200:
  *         description: Inscripción eliminada
  */
-router.delete('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), InscripcionController.remove);
+router.delete('/:id', authenticate, authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.ESTUDIANTE), InscripcionController.remove);
+
+/**
+ * @swagger
+ * /api/inscripciones/mis-cursos/{id_usuario}:
+ *   get:
+ *     summary: Obtener todos los cursos en los que un usuario está inscrito (incluyendo su progreso)
+ *     tags: [Inscripciones]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id_usuario
+ *         required: true
+ *         description: ID del usuario
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Lista de cursos inscritos con su progreso
+ *       400:
+ *         description: El id_usuario es requerido
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get(
+    '/mis-cursos/:id_usuario',
+    authenticate,
+    authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCENTE, ROLES.ESTUDIANTE),
+    InscripcionController.getMisCursosInscritos
+);
 
 export default router;
 

@@ -12,6 +12,7 @@ import teacherRoutes from './routes/teacher.routes.js';
 import superadminRoutes from './routes/superadminRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import progresoRoutes from './routes/progresoRoutes.js';
+import reportesRoutes from './routes/reportesRoutes.js';
 import validacionRoutes from './routes/validacionRoutes.js';
 import cursoRoutes     from './routes/curso.routes.js';
 import moduloRoutes    from './routes/modulo.routes.js';
@@ -60,6 +61,8 @@ app.use('/api/modulos/:moduloId/contenidos', contenidoRoutes);
 app.use('/api/superadmin',               superadminRoutes);
 app.use('/api/inscripciones',            inscripcionRoutes);
 app.use('/api/admin/dashboard',          adminDashboardRoutes);
+
+app.use('/api/reportes', reportesRoutes);
 
 // Módulo Equipo 5 — Progreso, Validación y Certificados
 app.use('/certificates', certificateRoutes);
