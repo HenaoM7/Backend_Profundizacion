@@ -54,6 +54,7 @@ export const rolePermissions = {
     'cursos.asignados.ver',
     'cursos.crear',
     'cursos.asignar',
+    'cursos.editar.propios',
     'modulos.crear',
     'modulos.editar',
     'modulos.eliminar.propios',

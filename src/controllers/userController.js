@@ -104,15 +104,26 @@ export const getUser = async (req, res, next) => {
   }
 };
 
+const isAdminOrSuperAdmin = (roles = []) => {
+  return roles.includes('Admin') || roles.includes('SuperAdmin');
+};
+
 export const editUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, roles } = req.body;
+    const { nombre, roles, contrasena } = req.body;
+
+    const currentRoles = req.auth?.roles || [];
+    if (!isAdminOrSuperAdmin(currentRoles)) {
+      return res.status(403).json({
+        message: 'Solo Admin o SuperAdmin pueden editar usuarios.',
+      });
+    }
 
     // Validar que se proporcione algo
-    if (!nombre && (!roles || roles.length === 0)) {
+    if (!nombre && (!roles || roles.length === 0) && contrasena === undefined) {
       return res.status(400).json({
-        message: 'Debes proporcionar nombre o roles a actualizar.',
+        message: 'Debes proporcionar nombre, roles o contraseña a actualizar.',
       });
     }
 
@@ -129,6 +140,30 @@ export const editUser = async (req, res, next) => {
       });
     }
 
+    // Validar contraseña
+    if (contrasena !== undefined) {
+      if (typeof contrasena !== 'string') {
+        return res.status(400).json({
+          message: 'La contraseña debe ser una cadena de texto.',
+        });
+      }
+
+      if (contrasena.length < 8) {
+        return res.status(400).json({
+          message: 'La contraseña debe tener al menos 8 caracteres.',
+        });
+      }
+
+      const currentRoles = req.auth?.roles || [];
+      const canEditPassword = currentRoles.includes('Admin') || currentRoles.includes('SuperAdmin');
+
+      if (!canEditPassword) {
+        return res.status(403).json({
+          message: 'Solo Admin o SuperAdmin pueden editar la contraseña.',
+        });
+      }
+    }
+
     // Normalizar roles
     const roleNames = Array.isArray(roles)
       ? [...new Set(roles.filter((role) => typeof role === 'string' && role.trim()))]
@@ -138,6 +173,7 @@ export const editUser = async (req, res, next) => {
       id,
       nombre: nombre ? nombre.trim() : undefined,
       roleNames,
+      contrasena,
       actorRoles: req.auth?.roles || [],
     });
 
@@ -153,6 +189,12 @@ export const editUser = async (req, res, next) => {
       });
     }
 
+    if (result.errorCode === 'PASSWORD_EDIT_NOT_ALLOWED') {
+      return res.status(403).json({
+        message: 'Solo Admin o SuperAdmin pueden editar la contraseña.',
+      });
+    }
+
     if (result.errorCode === 'ROLE_ASSIGNMENT_NOT_ALLOWED') {
       return res.status(403).json({
         message: 'No tienes permisos para asignar uno o más roles seleccionados.',
@@ -162,6 +204,12 @@ export const editUser = async (req, res, next) => {
     if (result.errorCode === 'INVALID_ROLES') {
       return res.status(400).json({
         message: 'Uno o más roles no existen o están inactivos.',
+      });
+    }
+
+    if (result.errorCode === 'USER_EDIT_NOT_ALLOWED') {
+      return res.status(403).json({
+        message: 'Solo Admin o SuperAdmin pueden editar usuarios.',
       });
     }
 
@@ -176,20 +224,31 @@ export const setUserActiveStatusEndpoint = async (req, res, next) => {
     const { id } = req.params;
     const { activo } = req.body;
 
+    const currentRoles = req.auth?.roles || [];
+    if (!isAdminOrSuperAdmin(currentRoles)) {
+      return res.status(403).json({
+        message: 'Solo Admin o SuperAdmin pueden activar o desactivar usuarios.',
+      });
+    }
+
     if (typeof activo !== 'boolean') {
       return res.status(400).json({
         message: 'El campo activo debe ser true o false.',
       });
     }
 
-    const result = await setUserActiveStatus(id, activo);
+    const result = await setUserActiveStatus(id, activo, currentRoles);
 
     if (result.errorCode === 'USER_NOT_FOUND') {
       return res.status(404).json({
         message: 'Usuario no encontrado.',
       });
     }
-
+    if (result.errorCode === 'USER_EDIT_NOT_ALLOWED') {
+      return res.status(403).json({
+        message: 'Solo Admin o SuperAdmin pueden activar o desactivar usuarios.',
+      });
+    }
     if (result.errorCode === 'CANNOT_DEACTIVATE_SUPERADMIN') {
       return res.status(403).json({
         message: 'No puedes desactivar el usuario SuperAdmin.',
