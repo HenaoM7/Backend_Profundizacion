@@ -58,8 +58,12 @@ export const findByCodigoVerificacion = async (codigo) => {
 
 export const findDatosParaCertificado = async (userId, courseId) => {
   const result = await query(
-    `SELECT u.nombre AS nombre_estudiante, cu.titulo AS nombre_curso
+    `SELECT
+       u.nombre   AS nombre_estudiante,
+       cu.titulo  AS nombre_curso,
+       ud.nombre  AS nombre_docente
      FROM usuario u, curso cu
+     LEFT JOIN usuario ud ON cu.id_usuario::text = ud.id_usuario::text
      WHERE u.id_usuario = $1 AND cu.id_curso = $2`,
     [userId, courseId]
   );
