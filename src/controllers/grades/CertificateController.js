@@ -31,6 +31,11 @@ export const getCertificadosByUser = async (req, res, next) => {
 export const verificarCertificado = async (req, res, next) => {
   try {
     const cert = await certificateService.verificarCertificado(req.params.codigo);
+
+    if (cert.htmlRenderizado) {
+      return res.setHeader('Content-Type', 'text/html; charset=utf-8').send(cert.htmlRenderizado);
+    }
+
     res.json({
       success: true,
       data: {

@@ -64,12 +64,53 @@ router.get(
  *     tags: [Progreso]
  *     security:
  *       - BearerAuth: []
- * ...
+ *     parameters:
+ *       - in: path
+ *         name: idContenido
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID del contenido a marcar como completado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id_usuario
+ *             properties:
+ *               id_usuario:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID del usuario que completa el contenido
+ *                 example: "422816f9-46b7-407b-b255-9fde0b83482a"
+ *     responses:
+ *       200:
+ *         description: Contenido marcado como completado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     actualizado:
+ *                       type: boolean
+ *                     porcentajeActual:
+ *                       type: number
+ *                     completado:
+ *                       type: boolean
  */
 router.post(
     '/contenido/:idContenido/completar',
     authenticate,
-    // ¡AQUÍ ESTÁ EL PERMISO DEL ESTUDIANTE!
     authorize(ROLES.ESTUDIANTE, ROLES.SUPER_ADMIN, ROLES.ADMIN),
     ProgresoController.completarContenido
 );
