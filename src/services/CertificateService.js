@@ -342,9 +342,14 @@ export const registrarPlantilla = async (idCurso, htmlTemplate) => {
   return certRepo.upsertPlantilla(idCurso, htmlTemplate.trim());
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const generarCertificado = async ({ userId, courseId }) => {
   if (!userId || !courseId) {
     throw { status: 400, message: 'userId y courseId son requeridos.' };
+  }
+  if (!UUID_RE.test(userId) || !UUID_RE.test(courseId)) {
+    throw { status: 400, message: 'userId y courseId deben ser UUIDs válidos.' };
   }
 
   const existing = await certRepo.findByUserIdAndCourseId(userId, courseId);
